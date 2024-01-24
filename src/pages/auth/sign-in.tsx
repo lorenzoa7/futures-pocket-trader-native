@@ -1,37 +1,33 @@
+import BinanceIcon from '@/components/icons/binance-icon'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { ChevronRight } from 'lucide-react'
 
 export function SignIn() {
   return (
-    <div className="lg:p-8">
-      <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
-        <div className="flex flex-col space-y-2 text-center">
-          <h1 className="text-2xl font-semibold tracking-tight">Go to app</h1>
-          <p className="text-muted-foreground text-sm">
-            Make your first order!
-          </p>
-        </div>
-
-        <div className="grid gap-6">
-          <form>
-            <div className="grid gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="email">Your API key</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  autoCapitalize="none"
-                  autoComplete="email"
-                  autoCorrect="off"
-                />
-              </div>
-
-              <Button type="submit">Login</Button>
-            </div>
-          </form>
-        </div>
+    <div className="mx-auto flex w-full flex-col justify-center gap-6">
+      <div className="flex items-baseline gap-2">
+        <BinanceIcon width={20} height={20} />
+        <h1 className="text-2xl font-semibold text-slate-50">
+          <span className="text-amber-400">Binance</span> Assistant Bot
+        </h1>
       </div>
+      <form className="flex flex-col gap-3">
+        <div className="flex flex-col gap-1">
+          <Label htmlFor="apiKey">Your API key</Label>
+          <Input id="apiKey" />
+        </div>
+        <div className="flex flex-col gap-1">
+          <Label htmlFor="secretKey">Your secret key</Label>
+          <Input id="secretKey" />
+        </div>
+
+        <Button variant="default" type="submit">
+          Start using now
+          <ChevronRight className="ml-2 size-4" />
+        </Button>
+      </form>
     </div>
   )
 }
