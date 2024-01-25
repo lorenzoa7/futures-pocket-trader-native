@@ -1,11 +1,12 @@
-import { useLayoutEffect } from 'react'
+import { useEffect } from 'react'
 import { Outlet, useNavigate } from 'react-router-dom'
 
 export function AppLayout() {
   const navigate = useNavigate()
 
-  useLayoutEffect(() => {
-    const isAuthenticated = localStorage.getItem('apiKey')
+  useEffect(() => {
+    const apiKey = localStorage.getItem('apiKey')
+    const isAuthenticated = !!apiKey && apiKey.length > 0
     if (!isAuthenticated) {
       navigate('/sign-in', {
         replace: true,
