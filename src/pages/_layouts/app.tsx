@@ -5,6 +5,7 @@ export function AppLayout() {
   const navigate = useNavigate()
 
   useEffect(() => {
+    console.log('entrei')
     const apiKey = localStorage.getItem('apiKey')
     const isAuthenticated = !!apiKey && apiKey.length > 0
     if (!isAuthenticated) {

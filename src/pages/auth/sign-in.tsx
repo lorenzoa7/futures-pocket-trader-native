@@ -1,3 +1,4 @@
+import { getAccountInformation } from '@/api/get-account-information'
 import BinanceIcon from '@/components/icons/binance-icon'
 import { Button } from '@/components/ui/button'
 import {
@@ -25,8 +26,9 @@ export function SignIn() {
     },
   })
 
-  function handleSignIn(data: SignInSchema) {
-    console.log(data)
+  async function handleSignIn(data: SignInSchema) {
+    const account = await getAccountInformation(data.apiKey, data.secretKey)
+    console.log(account)
   }
 
   return (
