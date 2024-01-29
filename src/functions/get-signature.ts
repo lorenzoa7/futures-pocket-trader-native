@@ -1,4 +1,4 @@
-import crypto from 'crypto'
+import CryptoJS from 'crypto-js'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type Props = {
@@ -14,8 +14,5 @@ export function getSignature({ params, secretKey }: Props) {
     .join('&')
   console.log(queryString)
 
-  return crypto
-    .createHmac('sha256', secretKey)
-    .update(queryString)
-    .digest('hex')
+  return CryptoJS.HmacSHA256(queryString, secretKey).toString()
 }
