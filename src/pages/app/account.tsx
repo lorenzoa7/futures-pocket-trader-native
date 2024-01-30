@@ -15,7 +15,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { SaveIcon } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 
-export function Main() {
+export function Account() {
   const form = useForm<SignInSchema>({
     resolver: zodResolver(signInSchema),
     defaultValues: {

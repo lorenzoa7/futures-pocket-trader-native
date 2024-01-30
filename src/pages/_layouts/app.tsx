@@ -1,4 +1,5 @@
 import { Header } from '@/components/core/header'
+import { NavBar } from '@/components/core/nav-bar'
 import { Outlet } from 'react-router-dom'
 
 export function AppLayout() {
@@ -8,6 +9,7 @@ export function AppLayout() {
       <div className="flex flex-1 flex-col">
         <Outlet />
       </div>
+      <NavBar />
     </div>
   )
 }
