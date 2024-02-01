@@ -12,7 +12,6 @@ export function getSignature({ params, secretKey }: Props) {
       return `${encodeURIComponent(key)}=${params[key]}`
     })
     .join('&')
-  console.log(queryString)
 
   return CryptoJS.HmacSHA256(queryString, secretKey).toString()
 }

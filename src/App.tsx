@@ -16,7 +16,17 @@ function App() {
       persistOptions={{ persister }}
     >
       <RouterProvider router={router} />
-      <Toaster richColors />
+      <Toaster
+        position="top-right"
+        expand={true}
+        duration={1500}
+        visibleToasts={1}
+        toastOptions={{
+          style: {
+            backgroundColor: '#1e293b',
+          },
+        }}
+      />
     </PersistQueryClientProvider>
   )
 }

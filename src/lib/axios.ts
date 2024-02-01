@@ -1,16 +1,11 @@
-import { enableApiDelay } from '@/config/connections'
 import axios from 'axios'
 
-export const api = axios.create({
-  baseURL: 'https://testnet.binancefuture.com',
+axios.defaults.headers.post['Content-Type'] = 'application/json'
+
+export const futuresApi = axios.create({
+  baseURL: 'https://fapi.binance.com',
 })
 
-if (enableApiDelay) {
-  api.interceptors.request.use(async (config) => {
-    await new Promise((resolve) =>
-      setTimeout(resolve, Math.round(Math.random() * 4000)),
-    )
-
-    return config
-  })
-}
+export const testnetFuturesApi = axios.create({
+  baseURL: 'https://testnet.binancefuture.com',
+})

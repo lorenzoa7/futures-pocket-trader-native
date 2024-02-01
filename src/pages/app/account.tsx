@@ -1,4 +1,3 @@
-import { getAccountInformation } from '@/api/get-account-information'
 import { Button } from '@/components/ui/button'
 import {
   Form,
@@ -10,24 +9,33 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
+import { useAccountStore } from '@/hooks/store/use-account-store'
 import { SignInSchema, signInSchema } from '@/schemas/sign-in-schema'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { SaveIcon } from 'lucide-react'
 import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
 
 export function Account() {
+  const { apiKey, isTestnetAccount, secretKey } = useAccountStore()
   const form = useForm<SignInSchema>({
     resolver: zodResolver(signInSchema),
     defaultValues: {
-      apiKey: '',
-      secretKey: '',
-      isTestnetAccount: false,
+      apiKey,
+      secretKey,
+      isTestnetAccount,
     },
   })
 
   async function handleSignIn(data: SignInSchema) {
-    const account = await getAccountInformation(data.apiKey, data.secretKey)
-    console.log(account)
+    useAccountStore.setState((state) => ({
+      ...state,
+      apiKey: data.apiKey,
+      secretKey: data.secretKey,
+      isTestnetAccount: data.isTestnetAccount,
+    }))
+
+    toast.success('Account saved!')
   }
 
   return (
