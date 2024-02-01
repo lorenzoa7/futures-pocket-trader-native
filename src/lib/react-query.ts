@@ -1,5 +1,5 @@
-import { QueryClient } from '@tanstack/react-query'
-import { isAxiosError } from 'axios'
+import { queryCacheOnError } from '@/functions/query-cache-on-error'
+import { QueryCache, QueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
 let displayedNetworkFailureError = false
@@ -7,7 +7,6 @@ let displayedNetworkFailureError = false
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      gcTime: 1000 * 60 * 60 * 24 * 7, // 7 days
       retry(failureCount) {
         if (failureCount >= 3) {
           if (displayedNetworkFailureError === false) {
@@ -29,16 +28,8 @@ export const queryClient = new QueryClient({
         return true
       },
     },
-    mutations: {
-      onError(error) {
-        if (isAxiosError(error)) {
-          if ('message' in error.response?.data) {
-            toast.error(error.response?.data.message)
-          } else {
-            toast.error('Somethin went wrong!')
-          }
-        }
-      },
-    },
   },
+  queryCache: new QueryCache({
+    onError: queryCacheOnError,
+  }),
 })

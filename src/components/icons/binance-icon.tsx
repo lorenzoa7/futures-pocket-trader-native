@@ -1,5 +1,3 @@
-import * as React from 'react'
-
 function BinanceIcon(props: React.ComponentProps<'svg'>) {
   return (
     <svg

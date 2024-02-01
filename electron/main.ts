@@ -21,7 +21,7 @@ const VITE_DEV_SERVER_URL = process.env.VITE_DEV_SERVER_URL
 
 function createWindow() {
   win = new BrowserWindow({
-    icon: path.join(process.env.VITE_PUBLIC, 'binance-icon.svg'),
+    icon: path.join(process.env.VITE_PUBLIC, 'bitcoin-icon.svg'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
     },
@@ -30,6 +30,9 @@ function createWindow() {
 
   // Hide menu bar
   win.setMenuBarVisibility(false)
+
+  // Open dev tools
+  win.webContents.openDevTools()
 
   // Test active push message to Renderer-process.
   win.webContents.on('did-finish-load', () => {
