@@ -21,18 +21,24 @@ let win: BrowserWindow | null
 // 🚧 Use ['ENV_NAME'] avoid vite:define plugin - Vite@2.x
 const VITE_DEV_SERVER_URL = process.env.VITE_DEV_SERVER_URL
 
-ipcMain.handle('request', async (_, { query, apiKey, signature }) => {
-  const response = await axios.post<NewOrderResponse>(
-    `https://testnet.binancefuture.com/fapi/v1/order?${query}&signature=${signature}`,
-    undefined,
-    {
-      headers: {
-        'X-MBX-APIKEY': apiKey,
+ipcMain.handle(
+  'request',
+  async (_, { query, apiKey, signature, isTestnetAccount }) => {
+    const url = isTestnetAccount
+      ? 'https://testnet.binancefuture.com'
+      : 'https://fapi.binance.com'
+    const response = await axios.post<NewOrderResponse>(
+      `${url}/fapi/v1/order?${query}&signature=${signature}`,
+      undefined,
+      {
+        headers: {
+          'X-MBX-APIKEY': apiKey,
+        },
       },
-    },
-  )
-  return response.data
-})
+    )
+    return response.data
+  },
+)
 
 function createWindow() {
   win = new BrowserWindow({

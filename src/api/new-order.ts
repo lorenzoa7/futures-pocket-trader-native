@@ -1,5 +1,6 @@
 import { getSignature } from '@/functions/get-signature'
 import { CreateOrderSchema } from '@/schemas/create-order-schema'
+import { toast } from 'sonner'
 
 export type NewOrderResponse = Record<string, string | number | boolean>
 
@@ -36,14 +37,13 @@ export async function newOrder({
 
   const query = objectToString(params)
   const signature = getSignature({ params, secretKey })
-  // api(isTestnetAccount).get<NewOrderResponse>(
-  //   `/fapi/v1/order?symbol=${params.symbol}&side=${params.side}&type=${params.type}&timeInForce=${params.timeInForce}&quantity=${params.quantity}&price=${params.price}&signature=${signature}&recvWindow=${params.recvWindow}&timestamp=${params.timestamp}`,
-  //   {
-  //     headers: {
-  //       'X-MBX-APIKEY': apiKey,
-  //     },
-  //   },
-  // ),
 
-  window.ipcRenderer.invoke('request', { query, signature, apiKey })
+  window.ipcRenderer
+    .invoke('request', { query, signature, apiKey, isTestnetAccount })
+    .then(() => toast.success('New order created successfully!'))
+    .catch(() =>
+      toast.error(
+        "Couldn't create a new order. Check if the parameters are correct and try again!",
+      ),
+    )
 }

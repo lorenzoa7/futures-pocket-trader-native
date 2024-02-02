@@ -34,7 +34,6 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Check, ChevronsUpDown } from 'lucide-react'
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
-import { toast } from 'sonner'
 
 export function CreateOrder() {
   const form = useForm<CreateOrderSchema>({
@@ -53,19 +52,10 @@ export function CreateOrder() {
   const { apiKey, isTestnetAccount, secretKey } = useAccountStore()
   const { data: symbols } = useSymbolsQuery()
   const { data: lastPrice } = useSymbolPriceQuery(symbolWatch)
-  const { mutateAsync: newOrder } = useNewOrderQuery()
+  const { mutate: newOrder } = useNewOrderQuery()
 
-  async function handleCreateOrder(data: CreateOrderSchema) {
-    try {
-      await newOrder({ apiKey, secretKey, isTestnetAccount, data })
-
-      toast.success('New order created successfully!')
-    } catch (error) {
-      console.error(error)
-      toast.error(
-        "Couldn't create a new order. Check if the parameters are correct and try again!",
-      )
-    }
+  function handleCreateOrder(data: CreateOrderSchema) {
+    newOrder({ apiKey, secretKey, isTestnetAccount, data })
   }
 
   useEffect(() => {
