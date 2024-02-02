@@ -1,5 +1,5 @@
 export const defaultParams = {
-  recvWindow: 50000,
+  recvWindow: 100000,
   timestamp: Date.now(),
 }
 

@@ -1,4 +1,6 @@
-import { app, BrowserWindow } from 'electron'
+import { NewOrderResponse } from '@/api/new-order'
+import axios from 'axios'
+import { app, BrowserWindow, ipcMain } from 'electron'
 import path from 'node:path'
 
 // The built directory structure
@@ -18,6 +20,19 @@ process.env.VITE_PUBLIC = app.isPackaged
 let win: BrowserWindow | null
 // 🚧 Use ['ENV_NAME'] avoid vite:define plugin - Vite@2.x
 const VITE_DEV_SERVER_URL = process.env.VITE_DEV_SERVER_URL
+
+ipcMain.handle('request', async (_, { query, apiKey, signature }) => {
+  const response = await axios.post<NewOrderResponse>(
+    `https://testnet.binancefuture.com/fapi/v1/order?${query}&signature=${signature}`,
+    undefined,
+    {
+      headers: {
+        'X-MBX-APIKEY': apiKey,
+      },
+    },
+  )
+  return response.data
+})
 
 function createWindow() {
   win = new BrowserWindow({

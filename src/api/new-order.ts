@@ -1,5 +1,3 @@
-import { defaultParams } from '@/config/connections'
-import { api } from '@/functions/api'
 import { getSignature } from '@/functions/get-signature'
 import { CreateOrderSchema } from '@/schemas/create-order-schema'
 
@@ -12,6 +10,13 @@ type Props = {
   data: CreateOrderSchema
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function objectToString(obj: Record<any, any>) {
+  const keys = Object.keys(obj)
+  const keyValuePairs = keys.map((key) => `${key}=${obj[key]}`)
+  return keyValuePairs.join('&')
+}
+
 export async function newOrder({
   apiKey,
   secretKey,
@@ -19,22 +24,26 @@ export async function newOrder({
   data,
 }: Props) {
   const params = {
-    ...defaultParams,
     symbol: data.symbol,
     side: data.side,
     quantity: data.quantity,
     price: data.price,
     type: 'LIMIT',
     timeInForce: 'GTC',
+    recvWindow: 100000,
+    timestamp: Date.now(),
   }
-  const signature = getSignature({ params, secretKey })
 
-  api(isTestnetAccount).get<NewOrderResponse>(
-    `/fapi/v1/order?symbol=${params.symbol}&side=${params.side}&type=${params.type}&timeInForce=${params.timeInForce}&quantity=${params.quantity}&price=${params.price}&signature=${signature}&recvWindow=${params.recvWindow}&timestamp=${params.timestamp}`,
-    {
-      headers: {
-        'X-MBX-APIKEY': apiKey,
-      },
-    },
-  )
+  const query = objectToString(params)
+  const signature = getSignature({ params, secretKey })
+  // api(isTestnetAccount).get<NewOrderResponse>(
+  //   `/fapi/v1/order?symbol=${params.symbol}&side=${params.side}&type=${params.type}&timeInForce=${params.timeInForce}&quantity=${params.quantity}&price=${params.price}&signature=${signature}&recvWindow=${params.recvWindow}&timestamp=${params.timestamp}`,
+  //   {
+  //     headers: {
+  //       'X-MBX-APIKEY': apiKey,
+  //     },
+  //   },
+  // ),
+
+  window.ipcRenderer.invoke('request', { query, signature, apiKey })
 }
