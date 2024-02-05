@@ -1,6 +1,6 @@
-import { getSignature } from '@/functions/get-signature'
+import { api } from '@/functions/api'
+import { generateQueryString } from '@/functions/generate-query-string'
 import { CreateOrderSchema } from '@/schemas/create-order-schema'
-import { toast } from 'sonner'
 
 export type NewOrderResponse = Record<string, string | number | boolean>
 
@@ -9,13 +9,6 @@ type Props = {
   secretKey: string
   isTestnetAccount: boolean
   data: CreateOrderSchema
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function objectToString(obj: Record<any, any>) {
-  const keys = Object.keys(obj)
-  const keyValuePairs = keys.map((key) => `${key}=${obj[key]}`)
-  return keyValuePairs.join('&')
 }
 
 export async function newOrder({
@@ -35,15 +28,16 @@ export async function newOrder({
     timestamp: Date.now(),
   }
 
-  const query = objectToString(params)
-  const signature = getSignature({ params, secretKey })
+  const query = generateQueryString({ params, secretKey })
+  const url = `/fapi/v1/order${query}`
 
-  window.ipcRenderer
-    .invoke('request', { query, signature, apiKey, isTestnetAccount })
-    .then(() => toast.success('New order created successfully!'))
-    .catch(() =>
-      toast.error(
-        "Couldn't create a new order. Check if the parameters are correct and try again!",
-      ),
-    )
+  await api<NewOrderResponse>({
+    method: 'post',
+    apiKey,
+    isTestnetAccount,
+    url,
+    successMessage: 'New order created successfully!',
+    errorMessage:
+      "Couldn't create a new order. Check your account, the parameters and try again!",
+  })
 }

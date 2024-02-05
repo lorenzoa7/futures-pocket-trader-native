@@ -1,6 +1,5 @@
-import { NewOrderResponse } from '@/api/new-order'
-import axios from 'axios'
-import { app, BrowserWindow, ipcMain } from 'electron'
+import axios, { AxiosRequestConfig } from 'axios'
+import { app, BrowserWindow, ipcMain, IpcMainInvokeEvent } from 'electron'
 import path from 'node:path'
 
 // The built directory structure
@@ -21,21 +20,38 @@ let win: BrowserWindow | null
 // 🚧 Use ['ENV_NAME'] avoid vite:define plugin - Vite@2.x
 const VITE_DEV_SERVER_URL = process.env.VITE_DEV_SERVER_URL
 
+type Props = {
+  url: string
+  isTestnetAccount: boolean
+  method: 'get' | 'post' | 'put' | 'patch' | 'delete'
+  body?: object
+  apiKey?: string
+}
+
 ipcMain.handle(
   'request',
-  async (_, { query, apiKey, signature, isTestnetAccount }) => {
-    const url = isTestnetAccount
+  async <T>(
+    _: IpcMainInvokeEvent,
+    { url, apiKey, isTestnetAccount, method, body }: Props,
+  ) => {
+    const baseUrl = isTestnetAccount
       ? 'https://testnet.binancefuture.com'
       : 'https://fapi.binance.com'
-    const response = await axios.post<NewOrderResponse>(
-      `${url}/fapi/v1/order?${query}&signature=${signature}`,
-      undefined,
-      {
-        headers: {
-          'X-MBX-APIKEY': apiKey,
-        },
+    const config: AxiosRequestConfig = {
+      headers: {
+        'Content-Type': 'application/json',
       },
-    )
+    }
+    if (apiKey && config.headers) {
+      config.headers['X-MBX-APIKEY'] = apiKey
+    }
+
+    const response = await axios[method]<T>(
+      `${baseUrl}${url}`,
+      body,
+      config,
+    ).catch((error) => Promise.reject(error))
+
     return response.data
   },
 )

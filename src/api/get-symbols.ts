@@ -9,9 +9,13 @@ type Props = {
 }
 
 export async function getSymbols({ isTestnetAccount }: Props) {
-  const response = await api(isTestnetAccount).get<GetSymbolsResponse>(
-    `/fapi/v1/exchangeInfo`,
-  )
+  const url = `/fapi/v1/exchangeInfo`
+  const response = await api<GetSymbolsResponse>({
+    isTestnetAccount,
+    url,
+    errorMessage:
+      "Couldn't load coins. Try closing the app and opening it again.",
+  })
 
-  return response.data.symbols.map((item) => item.symbol)
+  return response.symbols.map((item) => item.symbol)
 }

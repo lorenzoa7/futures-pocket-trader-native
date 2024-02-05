@@ -55,7 +55,12 @@ export function CreateOrder() {
   const { mutate: newOrder } = useNewOrderQuery()
 
   function handleCreateOrder(data: CreateOrderSchema) {
-    newOrder({ apiKey, secretKey, isTestnetAccount, data })
+    newOrder({
+      apiKey,
+      secretKey,
+      isTestnetAccount,
+      data,
+    })
   }
 
   useEffect(() => {

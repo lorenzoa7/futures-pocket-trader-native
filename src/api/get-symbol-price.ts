@@ -1,4 +1,5 @@
 import { api } from '@/functions/api'
+import { generateQueryString } from '@/functions/generate-query-string'
 
 export type GetSymbolPriceResponse = {
   symbol: string
@@ -16,9 +17,18 @@ export async function getSymbolPrice({ isTestnetAccount, symbol }: Props) {
     return 0
   }
 
-  const response = await api(isTestnetAccount).get<GetSymbolPriceResponse>(
-    `/fapi/v2/ticker/price?symbol=${symbol}`,
-  )
+  const params = {
+    symbol,
+  }
 
-  return Number(response.data.price)
+  const query = generateQueryString({ params })
+  const url = `/fapi/v2/ticker/price${query}`
+
+  const response = await api<GetSymbolPriceResponse>({
+    isTestnetAccount,
+    url,
+    errorMessage: "Couldn't load the last price.",
+  })
+
+  return Number(response.price)
 }

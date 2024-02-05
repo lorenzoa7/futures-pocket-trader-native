@@ -1,5 +1,4 @@
-import { queryCacheOnError } from '@/functions/query-cache-on-error'
-import { QueryCache, QueryClient } from '@tanstack/react-query'
+import { QueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
 let displayedNetworkFailureError = false
@@ -29,7 +28,4 @@ export const queryClient = new QueryClient({
       },
     },
   },
-  queryCache: new QueryCache({
-    onError: queryCacheOnError,
-  }),
 })
