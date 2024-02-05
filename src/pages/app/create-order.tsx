@@ -21,7 +21,16 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import Spinner from '@/components/ui/spinner'
+import { convertUsdt } from '@/functions/convert-usdt'
+import { splitSymbolByUSDT } from '@/functions/split-symbol-by-usdt'
 import { useNewOrderQuery } from '@/hooks/query/use-new-order-query'
 import { useSymbolPriceQuery } from '@/hooks/query/use-symbol-price-query'
 import { useSymbolsQuery } from '@/hooks/query/use-symbols-query'
@@ -32,9 +41,11 @@ import {
   createOrderSchema,
 } from '@/schemas/create-order-schema'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useQueryClient } from '@tanstack/react-query'
 import { Check, ChevronsUpDown } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
 
 export function CreateOrder() {
   const form = useForm<CreateOrderSchema>({
@@ -44,31 +55,53 @@ export function CreateOrder() {
       price: 0,
       quantity: 0,
       side: 'BUY',
+      isUsdtQuantity: false,
     },
   })
   const watch = form.watch
   const setValue = form.setValue
+  const isSubmitting = form.formState.isSubmitting
   const symbolWatch = watch('symbol')
+  const isUsdtQuantity = watch('isUsdtQuantity')
+  const side = watch('side')
+  const [currencies, setCurrencies] = useState<string[]>([])
+  const queryClient = useQueryClient()
 
   const [open, setOpen] = useState(false)
   const { apiKey, isTestnetAccount, secretKey } = useAccountStore()
-  const { data: symbols, isPending } = useSymbolsQuery()
+  const { data: symbols, isPending: isPendingSymbols } = useSymbolsQuery()
   const { data: lastPrice, isPending: isPendingPrice } =
     useSymbolPriceQuery(symbolWatch)
-  const { mutate: newOrder } = useNewOrderQuery()
+  const { mutate: newOrder, isPending: isPendingNewOrder } = useNewOrderQuery()
 
-  function handleCreateOrder(data: CreateOrderSchema) {
-    newOrder({
-      apiKey,
-      secretKey,
-      isTestnetAccount,
-      data,
+  async function handleCreateOrder(data: CreateOrderSchema) {
+    await queryClient.invalidateQueries({
+      queryKey: ['symbol-price', symbolWatch],
     })
+
+    if (lastPrice && data.isUsdtQuantity) {
+      data.quantity = convertUsdt(data.quantity, lastPrice)
+    }
+
+    if (data.quantity <= 0) {
+      toast.error('Quantity is too low. Set a new quantity and try again.')
+    } else {
+      newOrder({
+        apiKey,
+        secretKey,
+        isTestnetAccount,
+        data,
+      })
+    }
   }
 
   useEffect(() => {
     if (lastPrice) {
       setValue('price', lastPrice)
+    }
+
+    if (symbolWatch && symbolWatch.length > 0) {
+      setCurrencies(splitSymbolByUSDT(symbolWatch))
     }
   }, [lastPrice])
 
@@ -77,7 +110,7 @@ export function CreateOrder() {
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(handleCreateOrder)}
-          className="flex flex-col gap-3"
+          className="flex w-72 flex-col gap-3"
         >
           <FormField
             control={form.control}
@@ -106,7 +139,7 @@ export function CreateOrder() {
                   </PopoverTrigger>
                   <PopoverContent className="dark border-slate-800 bg-transparent p-0">
                     <Command>
-                      {isPending ? (
+                      {isPendingSymbols ? (
                         <div className="mx-auto flex items-center gap-2 py-3">
                           <Spinner />
                           <span>Loading coins...</span>
@@ -197,13 +230,38 @@ export function CreateOrder() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Quantity</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    {...field}
-                    className="[&::-webkit-inner-spin-button]:appearance-none"
-                  />
-                </FormControl>
+                <div className="flex gap-2">
+                  <FormControl>
+                    <Input
+                      type="number"
+                      {...field}
+                      className="[&::-webkit-inner-spin-button]:appearance-none"
+                    />
+                  </FormControl>
+                  {currencies.length > 0 && (
+                    <Select
+                      value={isUsdtQuantity ? currencies[1] : currencies[0]}
+                      onValueChange={(value) => {
+                        setValue('isUsdtQuantity', value === 'USDT')
+                      }}
+                    >
+                      <SelectTrigger className="w-48 truncate">
+                        <SelectValue placeholder="Select a currency" />
+                      </SelectTrigger>
+                      <SelectContent className="border-slate-800 bg-slate-950 text-white">
+                        {currencies.map((currency) => (
+                          <SelectItem
+                            key={currency}
+                            value={currency}
+                            className="focus:bg-slate-800 focus:text-white focus:hover:bg-slate-800 focus:hover:text-white"
+                          >
+                            {currency}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </div>
 
                 <FormMessage />
               </FormItem>
@@ -214,17 +272,25 @@ export function CreateOrder() {
             <Button
               variant="secondary"
               type="submit"
-              className="w-36 dark:bg-green-800 dark:hover:bg-green-800/80"
+              className="flex w-full items-center gap-2 dark:bg-green-800 dark:hover:bg-green-800/80"
               onClick={() => setValue('side', 'BUY')}
+              disabled={isPendingNewOrder || isSubmitting}
             >
+              {(isPendingNewOrder || isSubmitting) && side === 'BUY' && (
+                <Spinner className="fill-white text-slate-800" />
+              )}
               Buy
             </Button>
             <Button
               variant="secondary"
               type="submit"
-              className="w-36 dark:bg-red-800 dark:hover:bg-red-800/80"
+              className="flex w-full items-center gap-2 dark:bg-red-800 dark:hover:bg-red-800/80"
               onClick={() => setValue('side', 'SELL')}
+              disabled={isPendingNewOrder || isSubmitting}
             >
+              {(isPendingNewOrder || isSubmitting) && side === 'SELL' && (
+                <Spinner className="fill-white text-slate-800" />
+              )}
               Sell
             </Button>
           </div>

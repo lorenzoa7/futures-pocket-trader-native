@@ -7,6 +7,7 @@ export const createOrderSchema = z.object({
   price: z.coerce.number(),
   quantity: z.coerce.number(),
   side: z.enum(['BUY', 'SELL']),
+  isUsdtQuantity: z.boolean(),
 })
 
 export type CreateOrderSchema = z.infer<typeof createOrderSchema>
