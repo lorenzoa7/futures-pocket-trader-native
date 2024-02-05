@@ -21,6 +21,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import Spinner from '@/components/ui/spinner'
 import { useNewOrderQuery } from '@/hooks/query/use-new-order-query'
 import { useSymbolPriceQuery } from '@/hooks/query/use-symbol-price-query'
 import { useSymbolsQuery } from '@/hooks/query/use-symbols-query'
@@ -32,7 +33,7 @@ import {
 } from '@/schemas/create-order-schema'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Check, ChevronsUpDown } from 'lucide-react'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 
 export function CreateOrder() {
@@ -49,9 +50,11 @@ export function CreateOrder() {
   const setValue = form.setValue
   const symbolWatch = watch('symbol')
 
+  const [open, setOpen] = useState(false)
   const { apiKey, isTestnetAccount, secretKey } = useAccountStore()
-  const { data: symbols } = useSymbolsQuery()
-  const { data: lastPrice } = useSymbolPriceQuery(symbolWatch)
+  const { data: symbols, isPending } = useSymbolsQuery()
+  const { data: lastPrice, isPending: isPendingPrice } =
+    useSymbolPriceQuery(symbolWatch)
   const { mutate: newOrder } = useNewOrderQuery()
 
   function handleCreateOrder(data: CreateOrderSchema) {
@@ -82,7 +85,8 @@ export function CreateOrder() {
             render={({ field }) => (
               <FormItem className="flex flex-col">
                 <FormLabel>Symbol</FormLabel>
-                <Popover>
+
+                <Popover open={open} onOpenChange={setOpen}>
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button
@@ -102,34 +106,44 @@ export function CreateOrder() {
                   </PopoverTrigger>
                   <PopoverContent className="dark border-slate-800 bg-transparent p-0">
                     <Command>
-                      <CommandInput
-                        placeholder="Search symbol..."
-                        className="border-slate-800"
-                      />
-                      <CommandEmpty>No symbol found.</CommandEmpty>
-                      <CommandGroup>
-                        <ScrollArea className="h-32">
-                          {symbols?.map((symbol) => (
-                            <CommandItem
-                              value={symbol}
-                              key={symbol}
-                              onSelect={() => {
-                                form.setValue('symbol', symbol)
-                              }}
-                            >
-                              <Check
-                                className={cn(
-                                  'mr-2 h-4 w-4',
-                                  symbol === field.value
-                                    ? 'opacity-100'
-                                    : 'opacity-0',
-                                )}
-                              />
-                              {symbol}
-                            </CommandItem>
-                          ))}
-                        </ScrollArea>
-                      </CommandGroup>
+                      {isPending ? (
+                        <div className="mx-auto flex items-center gap-2 py-3">
+                          <Spinner />
+                          <span>Loading coins...</span>
+                        </div>
+                      ) : (
+                        <>
+                          <CommandInput
+                            placeholder="Search symbol..."
+                            className="border-slate-800"
+                          />
+                          <CommandEmpty>No symbol found.</CommandEmpty>
+                          <CommandGroup>
+                            <ScrollArea className="h-32">
+                              {symbols?.map((symbol) => (
+                                <CommandItem
+                                  value={symbol}
+                                  key={symbol}
+                                  onSelect={() => {
+                                    form.setValue('symbol', symbol)
+                                    setOpen(false)
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      'mr-2 h-4 w-4',
+                                      symbol === field.value
+                                        ? 'opacity-100'
+                                        : 'opacity-0',
+                                    )}
+                                  />
+                                  {symbol}
+                                </CommandItem>
+                              ))}
+                            </ScrollArea>
+                          </CommandGroup>
+                        </>
+                      )}
                     </Command>
                   </PopoverContent>
                 </Popover>
@@ -146,11 +160,30 @@ export function CreateOrder() {
               <FormItem>
                 <FormLabel>Price</FormLabel>
                 <FormControl>
-                  <Input
-                    type="number"
-                    {...field}
-                    className="[&::-webkit-inner-spin-button]:appearance-none"
-                  />
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      {...field}
+                      className="[&::-webkit-inner-spin-button]:appearance-none"
+                    />
+                    {isPendingPrice ? (
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                        <Spinner />
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 rounded bg-slate-900 px-2 py-px text-sm font-medium duration-150 hover:bg-slate-900/50"
+                        onClick={() => {
+                          if (lastPrice) {
+                            setValue('price', lastPrice)
+                          }
+                        }}
+                      >
+                        Last
+                      </button>
+                    )}
+                  </div>
                 </FormControl>
 
                 <FormMessage />
