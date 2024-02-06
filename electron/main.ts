@@ -46,9 +46,11 @@ ipcMain.handle(
       config.headers['X-MBX-APIKEY'] = apiKey
     }
 
+    const hasBodyConfig = method !== 'get' && method !== 'delete'
+
     const response = await axios[method]<T>(
       `${baseUrl}${url}`,
-      body,
+      hasBodyConfig ? body : config,
       config,
     ).catch((error) => Promise.reject(error))
 

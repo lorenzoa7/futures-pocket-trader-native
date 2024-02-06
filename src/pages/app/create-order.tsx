@@ -75,9 +75,12 @@ export function CreateOrder() {
   const { mutate: newOrder, isPending: isPendingNewOrder } = useNewOrderQuery()
 
   async function handleCreateOrder(data: CreateOrderSchema) {
-    await queryClient.invalidateQueries({
-      queryKey: ['symbol-price', symbolWatch],
-    })
+    await Promise.all([
+      queryClient.invalidateQueries({
+        queryKey: ['symbol-price', symbolWatch],
+      }),
+      queryClient.invalidateQueries({ queryKey: ['positions'] }),
+    ])
 
     if (lastPrice && data.isUsdtQuantity) {
       data.quantity = convertUsdt(data.quantity, lastPrice)
