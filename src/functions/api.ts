@@ -8,6 +8,7 @@ type Props = {
   errorMessage?: string
   body?: object
   apiKey?: string
+  noMessages?: boolean
 }
 
 export async function api<T extends object | unknown = unknown>({
@@ -18,18 +19,21 @@ export async function api<T extends object | unknown = unknown>({
   errorMessage = 'Something went wrong. Try closing the app and opening it again.',
   successMessage,
   body,
+  noMessages = false,
 }: Props) {
   return window.ipcRenderer
     .invoke('request', <T>{ url, apiKey, isTestnetAccount, method, body })
     .then((response: T) => {
-      if (successMessage) {
+      if (successMessage && !noMessages) {
         toast.success(successMessage)
       }
 
       return response
     })
     .catch((error) => {
-      toast.error(errorMessage)
+      if (!noMessages) {
+        toast.error(errorMessage)
+      }
 
       return Promise.reject(error)
     })
