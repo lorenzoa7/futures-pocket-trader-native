@@ -31,10 +31,10 @@ export function Positions() {
         <Table className="relative rounded-2xl" hasWrapper={false}>
           <TableHeader className="sticky top-0 z-10 w-full bg-slate-800">
             <TableRow>
-              <TableHead className="w-48 rounded-tl-lg">Symbol</TableHead>
-              <TableHead className="w-48">Side</TableHead>
-              <TableHead className="w-48">Entry Price</TableHead>
-              <TableHead className="w-48 rounded-tr-lg text-right">
+              <TableHead className="w-52 rounded-tl-lg">Symbol</TableHead>
+              <TableHead className="w-52">Side</TableHead>
+              <TableHead className="w-52">Entry Price</TableHead>
+              <TableHead className="w-52 rounded-tr-lg text-right">
                 Size
               </TableHead>
             </TableRow>
