@@ -1,6 +1,9 @@
+import { convertPriceToUsdt } from '@/functions/convert-price-to-usdt'
 import { usePositionsQuery } from '@/hooks/query/use-position-information-query'
+import { useSymbolsPriceQueries } from '@/hooks/query/use-symbols-price-queries'
 import { Label } from '../ui/label'
 import { ScrollArea } from '../ui/scroll-area'
+import Spinner from '../ui/spinner'
 import {
   Table,
   TableBody,
@@ -12,17 +15,28 @@ import {
 } from '../ui/table'
 
 export function Positions() {
-  const { data: positions } = usePositionsQuery()
+  const { data: positions, isPending: isPendingPositions } = usePositionsQuery()
+  const { data: prices, isPending: isPendingSymbolsPrices } =
+    useSymbolsPriceQueries(
+      positions
+        ? [...new Set(positions.map((position) => position.symbol))]
+        : [],
+    )
+
   return (
     <ScrollArea className="flex h-72 w-full flex-col gap-3 pr-3">
-      {positions ? (
-        <Table className="relative" hasWrapper={false}>
+      {isPendingPositions ? (
+        <Spinner className="mt-32 size-10" />
+      ) : positions && positions?.length > 0 ? (
+        <Table className="relative rounded-2xl" hasWrapper={false}>
           <TableHeader className="sticky top-0 z-10 w-full bg-slate-800">
             <TableRow>
-              <TableHead className="w-48">Symbol</TableHead>
+              <TableHead className="w-48 rounded-tl-lg">Symbol</TableHead>
               <TableHead className="w-48">Side</TableHead>
               <TableHead className="w-48">Entry Price</TableHead>
-              <TableHead className="w-48 text-right">Size</TableHead>
+              <TableHead className="w-48 rounded-tr-lg text-right">
+                Size
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -39,15 +53,24 @@ export function Positions() {
           </TableBody>
           <TableFooter className="sticky bottom-0 z-10 dark:bg-slate-800">
             <TableRow>
-              <TableCell colSpan={3}>Total</TableCell>
-              <TableCell className="text-right">
+              <TableCell colSpan={3} className="rounded-bl-lg">
+                Total (USDT)
+              </TableCell>
+              <TableCell className="rounded-br-lg text-right">
                 <span className="mr-1">$</span>
-                {positions
-                  .reduce(
-                    (total, position) => total + Number(position.positionAmt),
-                    0,
-                  )
-                  .toFixed(2)}
+                {isPendingSymbolsPrices
+                  ? '...'
+                  : positions
+                      .reduce(
+                        (total, position) =>
+                          total +
+                          convertPriceToUsdt(
+                            Number(position.positionAmt),
+                            prices[position.symbol] ?? 0,
+                          ),
+                        0,
+                      )
+                      .toFixed(2)}
               </TableCell>
             </TableRow>
           </TableFooter>

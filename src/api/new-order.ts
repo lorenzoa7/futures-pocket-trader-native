@@ -1,3 +1,4 @@
+import { defaultParams } from '@/config/connections'
 import { api } from '@/functions/api'
 import { generateQueryString } from '@/functions/generate-query-string'
 import { CreateOrderSchema } from '@/schemas/create-order-schema'
@@ -24,8 +25,8 @@ export async function newOrder({
     price: data.price,
     type: 'LIMIT',
     timeInForce: 'GTC',
-    recvWindow: 100000,
-    timestamp: Date.now(),
+    recvWindow: defaultParams.recvWindow,
+    timestamp: defaultParams.timestamp,
   }
 
   const query = generateQueryString({ params, secretKey })

@@ -1,3 +1,4 @@
+import { defaultParams } from '@/config/connections'
 import { api } from '@/functions/api'
 import { generateQueryString } from '@/functions/generate-query-string'
 
@@ -36,7 +37,8 @@ export async function getPositions({
   isTestnetAccount,
 }: Props) {
   const params = {
-    timestamp: Date.now(),
+    recvWindow: defaultParams.recvWindow,
+    timestamp: defaultParams.timestamp,
   }
 
   const query = generateQueryString({ params, secretKey })

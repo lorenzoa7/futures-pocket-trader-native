@@ -1,3 +1,4 @@
+import { defaultParams } from '@/config/connections'
 import { api } from '@/functions/api'
 import { generateQueryString } from '@/functions/generate-query-string'
 
@@ -18,6 +19,8 @@ export async function getSymbolPrice({ isTestnetAccount, symbol }: Props) {
   }
 
   const params = {
+    recvWindow: defaultParams.recvWindow,
+    timestamp: defaultParams.timestamp,
     symbol,
   }
 

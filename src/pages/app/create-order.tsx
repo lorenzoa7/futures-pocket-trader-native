@@ -29,7 +29,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import Spinner from '@/components/ui/spinner'
-import { convertUsdt } from '@/functions/convert-usdt'
+import { convertUsdtToPrice } from '@/functions/convert-usdt-to-price'
 import { splitSymbolByUSDT } from '@/functions/split-symbol-by-usdt'
 import { useNewOrderQuery } from '@/hooks/query/use-new-order-query'
 import { useSymbolPriceQuery } from '@/hooks/query/use-symbol-price-query'
@@ -83,7 +83,7 @@ export function CreateOrder() {
     ])
 
     if (lastPrice && data.isUsdtQuantity) {
-      data.quantity = convertUsdt(data.quantity, lastPrice)
+      data.quantity = convertUsdtToPrice(data.quantity, lastPrice)
     }
 
     if (data.quantity <= 0) {
