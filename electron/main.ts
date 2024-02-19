@@ -1,4 +1,3 @@
-import axios, { AxiosRequestConfig } from 'axios'
 import { app, BrowserWindow, ipcMain, IpcMainInvokeEvent } from 'electron'
 import path from 'node:path'
 
@@ -24,7 +23,7 @@ type Props = {
   url: string
   isTestnetAccount: boolean
   method: 'get' | 'post' | 'put' | 'patch' | 'delete'
-  body?: object
+  body?: BodyInit
   apiKey?: string
 }
 
@@ -37,24 +36,36 @@ ipcMain.handle(
     const baseUrl = isTestnetAccount
       ? 'https://testnet.binancefuture.com'
       : 'https://fapi.binance.com'
-    const config: AxiosRequestConfig = {
+    const config: RequestInit = {
+      method,
       headers: {
         'Content-Type': 'application/json',
+        'X-MBX-APIKEY': apiKey ?? '',
       },
-    }
-    if (apiKey && config.headers) {
-      config.headers['X-MBX-APIKEY'] = apiKey
+      body,
     }
 
-    const hasBodyConfig = method !== 'get' && method !== 'delete'
+    try {
+      const response = await fetch(`${baseUrl}${url}`, config)
+      if (!response.ok) {
+        throw new Error(
+          JSON.stringify({
+            status: response.status,
+            body: await response.text(),
+          }),
+        )
+      }
+      const data = (await response.json()) as T
+      return { data, ok: true }
+    } catch (error: unknown) {
+      const errorBody = JSON.parse(
+        (error as { message: string }).message as string,
+      ).body as string
 
-    const response = await axios[method]<T>(
-      `${baseUrl}${url}`,
-      hasBodyConfig ? body : config,
-      config,
-    ).catch((error) => Promise.reject(error))
+      const errorMessage = JSON.parse(errorBody).msg as string
 
-    return response.data
+      return { message: errorMessage, ok: false }
+    }
   },
 )
 

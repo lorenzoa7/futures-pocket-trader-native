@@ -23,18 +23,23 @@ export async function api<T extends object | unknown = unknown>({
 }: Props) {
   return window.ipcRenderer
     .invoke('request', <T>{ url, apiKey, isTestnetAccount, method, body })
-    .then((response: T) => {
-      if (successMessage && !noMessages) {
-        toast.success(successMessage)
+    .then((response) => {
+      if (response.ok) {
+        if (successMessage && !noMessages) {
+          toast.success(successMessage)
+        }
+        return response.data
       }
 
-      return response
+      return Promise.reject(response)
     })
     .catch((error) => {
       if (!noMessages) {
-        toast.error(errorMessage)
+        const updatedErrorMessage =
+          error.message && error.message.length > 0
+            ? `${error.message} Check the parameters and try again!`
+            : errorMessage
+        toast.error(updatedErrorMessage)
       }
-
-      return Promise.reject(error)
     })
 }
