@@ -1,6 +1,7 @@
 import { defaultParams } from '@/config/connections'
 import { api } from '@/functions/api'
 import { generateQueryString } from '@/functions/generate-query-string'
+import { toast } from 'sonner'
 
 export type Position = {
   symbol: string
@@ -44,13 +45,17 @@ export async function getPositions({
   const query = generateQueryString({ params, secretKey })
   const url = `/fapi/v2/positionRisk${query}`
 
-  const response = await api<GetPositionResponse>({
-    apiKey,
-    isTestnetAccount,
-    url,
-    errorMessage:
-      "Couldn't fetch your positions. Check if your account information is correct and reopen the app!",
-  })
+  try {
+    const response = await api<GetPositionResponse>({
+      apiKey,
+      isTestnetAccount,
+      url,
+    })
 
-  return response.filter((position) => Number(position.positionAmt) > 0)
+    return response.filter((position) => Number(position.positionAmt) > 0)
+  } catch (error) {
+    toast.error("Couldn't fetch your positions.", {
+      description: error as string,
+    })
+  }
 }

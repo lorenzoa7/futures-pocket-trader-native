@@ -2,6 +2,7 @@ import { defaultParams } from '@/config/connections'
 import { api } from '@/functions/api'
 import { generateQueryString } from '@/functions/generate-query-string'
 import { CreateOrderSchema } from '@/schemas/create-order-schema'
+import { toast } from 'sonner'
 
 export type NewOrderResponse = Record<string, string | number | boolean>
 
@@ -32,13 +33,18 @@ export async function newOrder({
   const query = generateQueryString({ params, secretKey })
   const url = `/fapi/v1/order${query}`
 
-  await api<NewOrderResponse>({
-    method: 'post',
-    apiKey,
-    isTestnetAccount,
-    url,
-    successMessage: 'New order created successfully!',
-    errorMessage:
-      "Couldn't create a new order. Check your account, the parameters and try again!",
-  })
+  try {
+    await api<NewOrderResponse>({
+      method: 'post',
+      apiKey,
+      isTestnetAccount,
+      url,
+    })
+
+    toast.success('New order created successfully!')
+  } catch (error) {
+    toast.error("Couldn't create a new order.", {
+      description: error as string,
+    })
+  }
 }

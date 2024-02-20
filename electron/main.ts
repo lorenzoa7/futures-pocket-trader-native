@@ -56,7 +56,7 @@ ipcMain.handle(
         )
       }
       const data = (await response.json()) as T
-      return { data, ok: true }
+      return { message: 'Success!', data, ok: true }
     } catch (error: unknown) {
       const errorBody = JSON.parse(
         (error as { message: string }).message as string,
@@ -64,7 +64,7 @@ ipcMain.handle(
 
       const errorMessage = JSON.parse(errorBody).msg as string
 
-      return { message: errorMessage, ok: false }
+      return { message: errorMessage, data: {}, ok: false }
     }
   },
 )

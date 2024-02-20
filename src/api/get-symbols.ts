@@ -1,4 +1,5 @@
 import { api } from '@/functions/api'
+import { toast } from 'sonner'
 
 export type GetSymbolsResponse = {
   symbols: { symbol: string }[]
@@ -10,12 +11,17 @@ type Props = {
 
 export async function getSymbols({ isTestnetAccount }: Props) {
   const url = `/fapi/v1/exchangeInfo`
-  const response = await api<GetSymbolsResponse>({
-    isTestnetAccount,
-    url,
-    errorMessage:
-      "Couldn't load coins. Try closing the app and opening it again.",
-  })
 
-  return response.symbols.map((item) => item.symbol)
+  try {
+    const response = await api<GetSymbolsResponse>({
+      isTestnetAccount,
+      url,
+    })
+
+    return response.symbols.map((item) => item.symbol)
+  } catch (error) {
+    toast.error("Couldn't load coins.", {
+      description: error as string,
+    })
+  }
 }

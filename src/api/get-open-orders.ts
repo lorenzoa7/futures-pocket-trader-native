@@ -1,6 +1,7 @@
 import { defaultParams } from '@/config/connections'
 import { api } from '@/functions/api'
 import { generateQueryString } from '@/functions/generate-query-string'
+import { toast } from 'sonner'
 
 export type Order = {
   orderId: number
@@ -50,13 +51,17 @@ export async function getOpenOrders({
   const query = generateQueryString({ params, secretKey })
   const url = `/fapi/v1/openOrders${query}`
 
-  const response = await api<GetOpenOrdersResponse>({
-    apiKey,
-    isTestnetAccount,
-    url,
-    errorMessage:
-      "Couldn't fetch your orders. Check if your account information is correct and reopen the app!",
-  })
+  try {
+    const response = await api<GetOpenOrdersResponse>({
+      apiKey,
+      isTestnetAccount,
+      url,
+    })
 
-  return response
+    return response
+  } catch (error) {
+    toast.error("Couldn't fetch your orders.", {
+      description: error as string,
+    })
+  }
 }
