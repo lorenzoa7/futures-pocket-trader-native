@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-export const createOrderSchema = z.object({
+export const singleOrderSchema = z.object({
   symbol: z.string({
     required_error: 'Please select a symbol.',
   }),
@@ -10,4 +10,4 @@ export const createOrderSchema = z.object({
   isUsdtQuantity: z.boolean(),
 })
 
-export type CreateOrderSchema = z.infer<typeof createOrderSchema>
+export type SingleOrderSchema = z.infer<typeof singleOrderSchema>

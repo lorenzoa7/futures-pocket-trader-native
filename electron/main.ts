@@ -76,6 +76,8 @@ function createWindow() {
       preload: path.join(__dirname, 'preload.js'),
     },
     resizable: false,
+    width: 800,
+    height: 880,
   })
 
   // Hide menu bar

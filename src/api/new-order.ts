@@ -1,7 +1,7 @@
 import { defaultParams } from '@/config/connections'
 import { api } from '@/functions/api'
 import { generateQueryString } from '@/functions/generate-query-string'
-import { CreateOrderSchema } from '@/schemas/create-order-schema'
+import { SingleOrderSchema } from '@/schemas/single-order-schema'
 import { toast } from 'sonner'
 
 export type NewOrderResponse = Record<string, string | number | boolean>
@@ -10,7 +10,7 @@ type Props = {
   apiKey: string
   secretKey: string
   isTestnetAccount: boolean
-  data: CreateOrderSchema
+  data: SingleOrderSchema
 }
 
 export async function newOrder({

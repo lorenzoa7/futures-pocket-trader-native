@@ -1,11 +1,23 @@
-import { Button } from '@/components/ui/button'
+import { splitSymbolByUSDT } from '@/functions/split-symbol-by-usdt'
+import { useSymbolPriceQuery } from '@/hooks/query/use-symbol-price-query'
+import { useSymbolsQuery } from '@/hooks/query/use-symbols-query'
+import { cn } from '@/lib/utils'
+import {
+  SplitOrderSchema,
+  splitOrderSchema,
+} from '@/schemas/split-order-schema'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { Check, ChevronsUpDown } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { Button } from '../ui/button'
 import {
   Command,
   CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandItem,
-} from '@/components/ui/command'
+} from '../ui/command'
 import {
   Form,
   FormControl,
@@ -13,51 +25,34 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
-import { ScrollArea } from '@/components/ui/scroll-area'
+} from '../ui/form'
+import { Input } from '../ui/input'
+import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover'
+import { ScrollArea } from '../ui/scroll-area'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import Spinner from '@/components/ui/spinner'
-import { convertUsdtToPrice } from '@/functions/convert-usdt-to-price'
-import { splitSymbolByUSDT } from '@/functions/split-symbol-by-usdt'
-import { useNewOrderQuery } from '@/hooks/query/use-new-order-query'
-import { useSymbolPriceQuery } from '@/hooks/query/use-symbol-price-query'
-import { useSymbolsQuery } from '@/hooks/query/use-symbols-query'
-import { useAccountStore } from '@/hooks/store/use-account-store'
-import { cn } from '@/lib/utils'
-import {
-  SingleOrderSchema,
-  singleOrderSchema,
-} from '@/schemas/single-order-schema'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useQueryClient } from '@tanstack/react-query'
-import { Check, ChevronsUpDown } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { toast } from 'sonner'
+} from '../ui/select'
+import { Slider } from '../ui/slider'
+import Spinner from '../ui/spinner'
 
-export function SingleOrder() {
-  const form = useForm<SingleOrderSchema>({
-    resolver: zodResolver(singleOrderSchema),
+export function SplitOrder() {
+  const form = useForm<SplitOrderSchema>({
+    resolver: zodResolver(splitOrderSchema),
     defaultValues: {
       symbol: '',
       price: 0,
       quantity: 0,
       side: 'BUY',
       isUsdtQuantity: false,
+      ordersQuantity: 2,
+      dropPercentage: 10,
     },
   })
+
   const watch = form.watch
   const setValue = form.setValue
   const isSubmitting = form.formState.isSubmitting
@@ -65,37 +60,15 @@ export function SingleOrder() {
   const isUsdtQuantity = watch('isUsdtQuantity')
   const side = watch('side')
   const [currencies, setCurrencies] = useState<string[]>([])
-  const queryClient = useQueryClient()
-
   const [open, setOpen] = useState(false)
-  const { apiKey, isTestnetAccount, secretKey } = useAccountStore()
   const { data: symbols, isPending: isPendingSymbols } = useSymbolsQuery()
   const { data: lastPrice, isPending: isPendingPrice } =
     useSymbolPriceQuery(symbolWatch)
-  const { mutate: newOrder, isPending: isPendingNewOrder } = useNewOrderQuery()
 
-  async function handleCreateOrder(data: SingleOrderSchema) {
-    await Promise.all([
-      queryClient.invalidateQueries({
-        queryKey: ['symbol-price', symbolWatch],
-      }),
-      queryClient.invalidateQueries({ queryKey: ['positions'] }),
-    ])
+  const isPendingNewOrder = false
 
-    if (lastPrice && data.isUsdtQuantity) {
-      data.quantity = convertUsdtToPrice(data.quantity, lastPrice)
-    }
-
-    if (data.quantity <= 0) {
-      toast.error('Quantity is too low. Set a new quantity and try again.')
-    } else {
-      newOrder({
-        apiKey,
-        secretKey,
-        isTestnetAccount,
-        data,
-      })
-    }
+  async function handleCreateSplitOrder(data: SplitOrderSchema) {
+    console.log(data)
   }
 
   useEffect(() => {
@@ -111,7 +84,7 @@ export function SingleOrder() {
   return (
     <Form {...form}>
       <form
-        onSubmit={form.handleSubmit(handleCreateOrder)}
+        onSubmit={form.handleSubmit(handleCreateSplitOrder)}
         className="flex w-72 flex-col gap-3"
       >
         <FormField
@@ -265,6 +238,46 @@ export function SingleOrder() {
                 )}
               </div>
 
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="ordersQuantity"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Orders quantity</FormLabel>
+              <FormControl>
+                <Input
+                  type="number"
+                  {...field}
+                  className="[&::-webkit-inner-spin-button]:appearance-none"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="dropPercentage"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Drop percentage - {field.value}%</FormLabel>
+              <FormControl>
+                <Slider
+                  min={1}
+                  max={99}
+                  step={1}
+                  defaultValue={[field.value]}
+                  onValueChange={(vals) => {
+                    field.onChange(vals[0])
+                  }}
+                />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}

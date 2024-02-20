@@ -1,4 +1,5 @@
 import { SingleOrder } from '@/components/create-order/single-order'
+import { SplitOrder } from '@/components/create-order/split-order'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 export function CreateOrder() {
@@ -9,14 +10,14 @@ export function CreateOrder() {
         className="flex w-[500px] flex-col items-center justify-center"
       >
         <TabsList>
-          <TabsTrigger value="single">Positions</TabsTrigger>
-          <TabsTrigger value="split">Orders</TabsTrigger>
+          <TabsTrigger value="single">Single</TabsTrigger>
+          <TabsTrigger value="split">Split</TabsTrigger>
         </TabsList>
         <TabsContent value="single">
           <SingleOrder />
         </TabsContent>
         <TabsContent value="split">
-          <div>Split</div>
+          <SplitOrder />
         </TabsContent>
       </Tabs>
     </div>
