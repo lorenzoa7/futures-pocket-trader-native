@@ -75,9 +75,11 @@ function createWindow() {
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
     },
-    resizable: false,
+    resizable: true,
     width: 800,
-    height: 880,
+    height: 800,
+    minWidth: 800,
+    minHeight: 880,
   })
 
   // Hide menu bar
