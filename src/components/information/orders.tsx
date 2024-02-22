@@ -1,3 +1,4 @@
+import { getOrderSide } from '@/functions/get-order-side'
 import { useOpenOrdersQuery } from '@/hooks/query/use-open-orders-query'
 import { Label } from '../ui/label'
 import { ScrollArea } from '../ui/scroll-area'
@@ -25,29 +26,36 @@ export function Orders() {
             <TableRow>
               <TableHead className="w-52 rounded-tl-lg">Symbol</TableHead>
               <TableHead className="w-52">Side</TableHead>
-              <TableHead className="w-52">Position</TableHead>
               <TableHead className="w-52">Quantity</TableHead>
               <TableHead className="w-52 rounded-tr-lg text-right">
-                Price
+                Amount
               </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {orders.map((order, index) => (
-              <TableRow key={index}>
-                <TableCell className="font-medium">{order.symbol}</TableCell>
-                <TableCell>{order.side}</TableCell>
-                <TableCell>{order.positionSide}</TableCell>
-                <TableCell>{Number(order.origQty)}</TableCell>
-                <TableCell className="text-right">
-                  {Number(order.price).toFixed(2)}
-                </TableCell>
-              </TableRow>
-            ))}
+            {orders.map((order, index) => {
+              const orderSide = getOrderSide(order.side)
+              return (
+                <TableRow key={index}>
+                  <TableCell className="font-medium">{order.symbol}</TableCell>
+                  <TableCell
+                    data-long={orderSide === 'LONG'}
+                    data-short={orderSide === 'SHORT'}
+                    className="data-[long=true]:text-green-400 data-[short=true]:text-red-400"
+                  >
+                    {orderSide}
+                  </TableCell>
+                  <TableCell>{Number(order.origQty)}</TableCell>
+                  <TableCell className="text-right">
+                    {Number(order.price).toFixed(2)}
+                  </TableCell>
+                </TableRow>
+              )
+            })}
           </TableBody>
           <TableFooter className="sticky bottom-0 z-10 dark:bg-slate-800">
             <TableRow>
-              <TableCell colSpan={4} className="rounded-bl-lg">
+              <TableCell colSpan={3} className="rounded-bl-lg">
                 Total (USDT)
               </TableCell>
               <TableCell className="rounded-br-lg text-right">

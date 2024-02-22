@@ -1,4 +1,5 @@
 import { convertPriceToUsdt } from '@/functions/convert-price-to-usdt'
+import { getPositionSide } from '@/functions/get-position-side'
 import { usePositionsQuery } from '@/hooks/query/use-position-information-query'
 import { useSymbolsPriceQueries } from '@/hooks/query/use-symbols-price-queries'
 import { Label } from '../ui/label'
@@ -40,16 +41,29 @@ export function Positions() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {positions.map((position, index) => (
-              <TableRow key={index}>
-                <TableCell className="font-medium">{position.symbol}</TableCell>
-                <TableCell>{position.positionSide}</TableCell>
-                <TableCell>{Number(position.entryPrice).toFixed(3)}</TableCell>
-                <TableCell className="text-right">
-                  {Number(position.positionAmt).toFixed(2)}
-                </TableCell>
-              </TableRow>
-            ))}
+            {positions.map((position, index) => {
+              const positionSide = getPositionSide(Number(position.notional))
+              return (
+                <TableRow key={index}>
+                  <TableCell className="font-medium">
+                    {position.symbol}
+                  </TableCell>
+                  <TableCell
+                    data-long={positionSide === 'LONG'}
+                    data-short={positionSide === 'SHORT'}
+                    className="data-[long=true]:text-green-400 data-[short=true]:text-red-400"
+                  >
+                    {positionSide}
+                  </TableCell>
+                  <TableCell>
+                    {Number(position.entryPrice).toFixed(3)}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {Number(position.positionAmt).toFixed(2)}
+                  </TableCell>
+                </TableRow>
+              )
+            })}
           </TableBody>
           <TableFooter className="sticky bottom-0 z-10 dark:bg-slate-800">
             <TableRow>

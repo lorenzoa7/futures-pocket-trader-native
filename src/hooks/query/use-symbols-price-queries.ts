@@ -10,7 +10,7 @@ export const useSymbolsPriceQueries = (symbols: string[]) => {
       queryKey: ['symbols-price', symbol],
       queryFn: () => getSymbolPrice({ symbol, isTestnetAccount }),
       enabled: symbols.length > 0,
-      select: (data: number) => {
+      select: (data: number | undefined) => {
         return { [symbol]: data }
       },
     })),
