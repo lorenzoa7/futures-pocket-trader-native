@@ -11,6 +11,8 @@ type Props = {
   secretKey: string
   isTestnetAccount: boolean
   data: SingleOrderSchema
+  dispatchSuccessMessage?: boolean
+  dispatchErrorMessage?: boolean
 }
 
 export async function newOrder({
@@ -18,6 +20,8 @@ export async function newOrder({
   secretKey,
   isTestnetAccount,
   data,
+  dispatchSuccessMessage = true,
+  dispatchErrorMessage = true,
 }: Props) {
   const params = {
     symbol: data.symbol,
@@ -41,10 +45,14 @@ export async function newOrder({
       url,
     })
 
-    toast.success('New order created successfully!')
+    if (dispatchSuccessMessage) {
+      toast.success('New order created successfully!')
+    }
   } catch (error) {
-    toast.error("Couldn't create a new order.", {
-      description: error as string,
-    })
+    if (dispatchErrorMessage) {
+      toast.error("Couldn't create a new order.", {
+        description: error as string,
+      })
+    }
   }
 }

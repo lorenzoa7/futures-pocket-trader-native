@@ -1,15 +1,20 @@
+import { convertUsdtToPrice } from '@/functions/convert-usdt-to-price'
 import { splitSymbolByUSDT } from '@/functions/split-symbol-by-usdt'
+import { useSplitOrdersQuery } from '@/hooks/query/use-split-orders-query'
 import { useSymbolPriceQuery } from '@/hooks/query/use-symbol-price-query'
 import { useSymbolsQuery } from '@/hooks/query/use-symbols-query'
+import { useAccountStore } from '@/hooks/store/use-account-store'
 import { cn } from '@/lib/utils'
 import {
   SplitOrderSchema,
   splitOrderSchema,
 } from '@/schemas/split-order-schema'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useQueryClient } from '@tanstack/react-query'
 import { Check, ChevronsUpDown } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
 import { Button } from '../ui/button'
 import {
   Command,
@@ -61,14 +66,36 @@ export function SplitOrder() {
   const side = watch('side')
   const [currencies, setCurrencies] = useState<string[]>([])
   const [open, setOpen] = useState(false)
+  const { apiKey, isTestnetAccount, secretKey } = useAccountStore()
   const { data: symbols, isPending: isPendingSymbols } = useSymbolsQuery()
   const { data: lastPrice, isPending: isPendingPrice } =
     useSymbolPriceQuery(symbolWatch)
-
-  const isPendingNewOrder = false
+  const queryClient = useQueryClient()
+  const { mutate: splitOrders, isPending: isPendingSplitOrder } =
+    useSplitOrdersQuery()
 
   async function handleCreateSplitOrder(data: SplitOrderSchema) {
-    console.log(data)
+    await Promise.all([
+      queryClient.invalidateQueries({
+        queryKey: ['symbol-price', symbolWatch],
+      }),
+      queryClient.invalidateQueries({ queryKey: ['positions'] }),
+    ])
+
+    if (lastPrice && data.isUsdtQuantity) {
+      data.quantity = convertUsdtToPrice(data.quantity, lastPrice)
+    }
+
+    if (data.quantity <= 0) {
+      toast.error('Quantity is too low. Set a new quantity and try again.')
+    } else {
+      splitOrders({
+        apiKey,
+        secretKey,
+        isTestnetAccount,
+        data,
+      })
+    }
   }
 
   useEffect(() => {
@@ -289,24 +316,24 @@ export function SplitOrder() {
             type="submit"
             className="flex w-full items-center gap-2 dark:bg-green-800 dark:hover:bg-green-800/80"
             onClick={() => setValue('side', 'BUY')}
-            disabled={isPendingNewOrder || isSubmitting}
+            disabled={isPendingSplitOrder || isSubmitting}
           >
-            {(isPendingNewOrder || isSubmitting) && side === 'BUY' && (
+            {(isPendingSplitOrder || isSubmitting) && side === 'BUY' && (
               <Spinner className="fill-white text-slate-800" />
             )}
-            Buy
+            Buy/Long
           </Button>
           <Button
             variant="secondary"
             type="submit"
             className="flex w-full items-center gap-2 dark:bg-red-800 dark:hover:bg-red-800/80"
             onClick={() => setValue('side', 'SELL')}
-            disabled={isPendingNewOrder || isSubmitting}
+            disabled={isPendingSplitOrder || isSubmitting}
           >
-            {(isPendingNewOrder || isSubmitting) && side === 'SELL' && (
+            {(isPendingSplitOrder || isSubmitting) && side === 'SELL' && (
               <Spinner className="fill-white text-slate-800" />
             )}
-            Sell
+            Sell/Short
           </Button>
         </div>
       </form>

@@ -52,7 +52,7 @@ export async function getPositions({
       url,
     })
 
-    return response.filter((position) => Number(position.positionAmt) > 0)
+    return response.filter((position) => Number(position.entryPrice) > 0)
   } catch (error) {
     toast.error("Couldn't fetch your positions.", {
       description: error as string,

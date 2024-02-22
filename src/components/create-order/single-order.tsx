@@ -281,7 +281,7 @@ export function SingleOrder() {
             {(isPendingNewOrder || isSubmitting) && side === 'BUY' && (
               <Spinner className="fill-white text-slate-800" />
             )}
-            Buy
+            Buy/Long
           </Button>
           <Button
             variant="secondary"
@@ -293,7 +293,7 @@ export function SingleOrder() {
             {(isPendingNewOrder || isSubmitting) && side === 'SELL' && (
               <Spinner className="fill-white text-slate-800" />
             )}
-            Sell
+            Sell/Short
           </Button>
         </div>
       </form>
