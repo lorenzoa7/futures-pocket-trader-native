@@ -59,13 +59,13 @@ export function Positions() {
                       {positionSide}
                     </TableCell>
                     <TableCell>
-                      {Number(position.entryPrice).toFixed(3)}
+                      {Number(position.entryPrice).toFixed(2)}
                     </TableCell>
                     <TableCell className="text-right">
-                      {convertPriceToUsdt(
+                      {`$ ${convertPriceToUsdt(
                         Number(position.positionAmt),
                         prices[position.symbol] ?? 0,
-                      ).toFixed(2)}
+                      ).toFixed(2)}`}
                     </TableCell>
                   </TableRow>
                 )

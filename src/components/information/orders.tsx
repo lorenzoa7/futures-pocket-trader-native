@@ -26,14 +26,16 @@ export function Orders() {
             <TableRow>
               <TableHead className="w-52">Symbol</TableHead>
               <TableHead className="w-52">Side</TableHead>
-              <TableHead className="w-52">Quantity</TableHead>
+              <TableHead className="w-52">Price</TableHead>
               <TableHead className="w-52 text-right">Amount</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {orders
               .sort(
-                (orderA, orderB) => Number(orderB.price) - Number(orderA.price),
+                (orderA, orderB) =>
+                  Number(orderB.price) * Number(orderB.origQty) -
+                  Number(orderA.price) * Number(orderA.origQty),
               )
               .map((order, index) => {
                 const orderSide = getOrderSide(order.side)
@@ -49,9 +51,9 @@ export function Orders() {
                     >
                       {orderSide}
                     </TableCell>
-                    <TableCell>{Number(order.origQty)}</TableCell>
+                    <TableCell>{Number(order.price).toFixed(2)}</TableCell>
                     <TableCell className="text-right">
-                      {Number(order.price).toFixed(2)}
+                      {`$ ${(Number(order.price) * Number(order.origQty)).toFixed(2)}`}
                     </TableCell>
                   </TableRow>
                 )
