@@ -144,7 +144,7 @@ export function SingleOrder() {
                     {isPendingSymbols ? (
                       <div className="mx-auto flex items-center gap-2 py-3">
                         <Spinner />
-                        <span>Loading coins...</span>
+                        <span>Loading currencies...</span>
                       </div>
                     ) : (
                       <>

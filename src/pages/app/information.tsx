@@ -11,12 +11,12 @@ export function Information() {
       >
         <TabsList>
           <TabsTrigger value="positions">Positions</TabsTrigger>
-          <TabsTrigger value="Orders">Orders</TabsTrigger>
+          <TabsTrigger value="orders">Orders</TabsTrigger>
         </TabsList>
-        <TabsContent value="positions">
+        <TabsContent value="positions" className="mt-0">
           <Positions />
         </TabsContent>
-        <TabsContent value="Orders">
+        <TabsContent value="orders" className="mt-0">
           <Orders />
         </TabsContent>
       </Tabs>
