@@ -17,19 +17,17 @@ export function Orders() {
   const { data: orders, isPending: isPendingOrders } = useOpenOrdersQuery()
 
   return (
-    <ScrollArea className="flex h-72 w-full flex-col gap-3 pr-3">
+    <ScrollArea className="flex h-96 w-full flex-col gap-3 pr-3">
       {isPendingOrders ? (
         <Spinner className="mt-32 size-10" />
       ) : orders && orders?.length > 0 ? (
         <Table className="relative rounded-2xl" hasWrapper={false}>
           <TableHeader className="sticky top-0 z-10 w-full bg-slate-800">
             <TableRow>
-              <TableHead className="w-52 rounded-tl-lg">Symbol</TableHead>
+              <TableHead className="w-52">Symbol</TableHead>
               <TableHead className="w-52">Side</TableHead>
               <TableHead className="w-52">Quantity</TableHead>
-              <TableHead className="w-52 rounded-tr-lg text-right">
-                Amount
-              </TableHead>
+              <TableHead className="w-52 text-right">Amount</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -55,10 +53,8 @@ export function Orders() {
           </TableBody>
           <TableFooter className="sticky bottom-0 z-10 dark:bg-slate-800">
             <TableRow>
-              <TableCell colSpan={3} className="rounded-bl-lg">
-                Total (USDT)
-              </TableCell>
-              <TableCell className="rounded-br-lg text-right">
+              <TableCell colSpan={3}>Total (USDT)</TableCell>
+              <TableCell className="text-right">
                 <span className="mr-1">$</span>
                 {orders
                   .reduce(
