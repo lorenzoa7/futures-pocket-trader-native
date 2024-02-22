@@ -39,29 +39,37 @@ export function Positions() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {positions.map((position, index) => {
-              const positionSide = getPositionSide(Number(position.notional))
-              return (
-                <TableRow key={index}>
-                  <TableCell className="font-medium">
-                    {position.symbol}
-                  </TableCell>
-                  <TableCell
-                    data-long={positionSide === 'LONG'}
-                    data-short={positionSide === 'SHORT'}
-                    className="data-[long=true]:text-green-400 data-[short=true]:text-red-400"
-                  >
-                    {positionSide}
-                  </TableCell>
-                  <TableCell>
-                    {Number(position.entryPrice).toFixed(3)}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {Number(position.positionAmt).toFixed(2)}
-                  </TableCell>
-                </TableRow>
+            {positions
+              .sort(
+                (positionA, positionB) =>
+                  Number(positionB.positionAmt) - Number(positionA.positionAmt),
               )
-            })}
+              .map((position, index) => {
+                const positionSide = getPositionSide(Number(position.notional))
+                return (
+                  <TableRow key={index}>
+                    <TableCell className="font-medium">
+                      {position.symbol}
+                    </TableCell>
+                    <TableCell
+                      data-long={positionSide === 'LONG'}
+                      data-short={positionSide === 'SHORT'}
+                      className="data-[long=true]:text-green-400 data-[short=true]:text-red-400"
+                    >
+                      {positionSide}
+                    </TableCell>
+                    <TableCell>
+                      {Number(position.entryPrice).toFixed(3)}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {convertPriceToUsdt(
+                        Number(position.positionAmt),
+                        prices[position.symbol] ?? 0,
+                      ).toFixed(2)}
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
           </TableBody>
           <TableFooter className="sticky bottom-0 z-10 translate-y-px dark:bg-slate-800">
             <TableRow>

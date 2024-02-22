@@ -31,25 +31,31 @@ export function Orders() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {orders.map((order, index) => {
-              const orderSide = getOrderSide(order.side)
-              return (
-                <TableRow key={index}>
-                  <TableCell className="font-medium">{order.symbol}</TableCell>
-                  <TableCell
-                    data-long={orderSide === 'LONG'}
-                    data-short={orderSide === 'SHORT'}
-                    className="data-[long=true]:text-green-400 data-[short=true]:text-red-400"
-                  >
-                    {orderSide}
-                  </TableCell>
-                  <TableCell>{Number(order.origQty)}</TableCell>
-                  <TableCell className="text-right">
-                    {Number(order.price).toFixed(2)}
-                  </TableCell>
-                </TableRow>
+            {orders
+              .sort(
+                (orderA, orderB) => Number(orderB.price) - Number(orderA.price),
               )
-            })}
+              .map((order, index) => {
+                const orderSide = getOrderSide(order.side)
+                return (
+                  <TableRow key={index}>
+                    <TableCell className="font-medium">
+                      {order.symbol}
+                    </TableCell>
+                    <TableCell
+                      data-long={orderSide === 'LONG'}
+                      data-short={orderSide === 'SHORT'}
+                      className="data-[long=true]:text-green-400 data-[short=true]:text-red-400"
+                    >
+                      {orderSide}
+                    </TableCell>
+                    <TableCell>{Number(order.origQty)}</TableCell>
+                    <TableCell className="text-right">
+                      {Number(order.price).toFixed(2)}
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
           </TableBody>
           <TableFooter className="sticky bottom-0 z-10 dark:bg-slate-800">
             <TableRow>
