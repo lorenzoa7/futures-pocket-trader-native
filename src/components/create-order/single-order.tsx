@@ -154,7 +154,7 @@ export function SingleOrder() {
                         />
                         <CommandEmpty>No symbol found.</CommandEmpty>
                         <CommandGroup>
-                          <ScrollArea className="h-32">
+                          <ScrollArea viewportClassName="max-h-32">
                             {symbols?.map((symbol) => (
                               <CommandItem
                                 value={symbol}

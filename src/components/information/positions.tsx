@@ -133,7 +133,7 @@ export function Positions() {
                             />
                             <CommandEmpty>No symbol found.</CommandEmpty>
                             <CommandGroup>
-                              <ScrollArea className="h-32">
+                              <ScrollArea viewportClassName="max-h-32">
                                 {openPositionsSymbols?.map((symbol) => (
                                   <CommandItem
                                     value={symbol}
@@ -320,10 +320,10 @@ export function Positions() {
             </TableFooter>
           </Table>
         ) : (
-          <div className="h-full px-10 text-center">
+          <div className="h-full w-[30.5rem] px-10 text-center">
             <Label>
-              There's no open positions or <br />
-              open positions that matches the filters.
+              There are no open positions or <br />
+              no open positions matches your filters.
             </Label>
           </div>
         )}
