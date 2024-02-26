@@ -30,6 +30,7 @@ import {
 } from '@/components/ui/select'
 import Spinner from '@/components/ui/spinner'
 import { convertUsdtToPrice } from '@/functions/convert-usdt-to-price'
+import { roundToDecimals } from '@/functions/round-to-decimals'
 import { splitSymbolByUSDT } from '@/functions/split-symbol-by-usdt'
 import { useNewOrderQuery } from '@/hooks/query/use-new-order-query'
 import { useSymbolPriceQuery } from '@/hooks/query/use-symbol-price-query'
@@ -82,9 +83,26 @@ export function SingleOrder() {
       queryClient.invalidateQueries({ queryKey: ['positions'] }),
     ])
 
-    if (lastPrice && data.isUsdtQuantity) {
-      data.quantity = convertUsdtToPrice(data.quantity, lastPrice)
+    const selectedSymbolData = symbols?.find(
+      (symbol) => symbol.symbol === data.symbol,
+    )
+
+    const precision = selectedSymbolData && {
+      quantity: selectedSymbolData.quantityPrecision,
+      price: selectedSymbolData.pricePrecision,
+      baseAsset: selectedSymbolData.baseAssetPrecision,
+      quote: selectedSymbolData.quotePrecision,
     }
+
+    data.quantity =
+      lastPrice && data.isUsdtQuantity
+        ? roundToDecimals(
+            convertUsdtToPrice(data.quantity, lastPrice),
+            precision?.quantity || 0,
+          )
+        : roundToDecimals(data.quantity, precision?.quantity || 0)
+
+    data.price = roundToDecimals(data.price, precision?.price || 0)
 
     if (data.quantity <= 0) {
       toast.error('Quantity is too low. Set a new quantity and try again.')
@@ -133,7 +151,9 @@ export function SingleOrder() {
                       )}
                     >
                       {field.value
-                        ? symbols?.find((symbol) => symbol === field.value)
+                        ? symbols?.find(
+                            (symbol) => symbol.symbol === field.value,
+                          )?.symbol
                         : 'Select symbol'}
                       <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
                     </Button>
@@ -157,22 +177,22 @@ export function SingleOrder() {
                           <ScrollArea viewportClassName="max-h-32">
                             {symbols?.map((symbol) => (
                               <CommandItem
-                                value={symbol}
-                                key={symbol}
+                                value={symbol.symbol}
+                                key={symbol.symbol}
                                 onSelect={() => {
-                                  form.setValue('symbol', symbol)
+                                  form.setValue('symbol', symbol.symbol)
                                   setOpen(false)
                                 }}
                               >
                                 <Check
                                   className={cn(
                                     'mr-2 h-4 w-4',
-                                    symbol === field.value
+                                    symbol.symbol === field.value
                                       ? 'opacity-100'
                                       : 'opacity-0',
                                   )}
                                 />
-                                {symbol}
+                                {symbol.symbol}
                               </CommandItem>
                             ))}
                           </ScrollArea>

@@ -1,6 +1,7 @@
 import { defaultParams } from '@/config/connections'
 import { api } from '@/functions/api'
 import { generateQueryString } from '@/functions/generate-query-string'
+import { roundToDecimals } from '@/functions/round-to-decimals'
 import { SplitOrderSchema } from '@/schemas/split-order-schema'
 import { toast } from 'sonner'
 
@@ -11,6 +12,7 @@ type Props = {
   secretKey: string
   isTestnetAccount: boolean
   data: SplitOrderSchema
+  pricePrecision: number
   dispatchSuccessMessage?: boolean
   dispatchErrorMessage?: boolean
 }
@@ -20,17 +22,18 @@ export async function splitOrders({
   secretKey,
   isTestnetAccount,
   data,
+  pricePrecision,
   dispatchSuccessMessage = true,
   dispatchErrorMessage = true,
 }: Props) {
   try {
     const promises = Array.from({ length: data.ordersQuantity }).map(
       (_, index) => {
-        const price =
+        const price = roundToDecimals(
           (1 - (data.dropPercentage / data.ordersQuantity / 100) * index) *
-          data.price
-
-        console.log(`PREÇO ${index + 1}: ${price}`)
+            data.price,
+          pricePrecision,
+        )
 
         const params = {
           symbol: data.symbol,
