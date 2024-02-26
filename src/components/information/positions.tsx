@@ -36,7 +36,9 @@ import {
 } from '../ui/table'
 
 export function Positions() {
-  const { data: positions, isPending: isPendingPositions } = usePositionsQuery()
+  const { data: positions, isPending: isPendingPositions } = usePositionsQuery({
+    onlyOpenPositions: true,
+  })
   const [filteredPositions, setFilteredPositions] = useState(positions)
 
   const openPositionsSymbols = positions

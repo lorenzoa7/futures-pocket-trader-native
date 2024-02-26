@@ -1,6 +1,8 @@
+import { capitalizeFirstLetter } from '@/functions/capitalize-first-letter'
 import { convertUsdtToPrice } from '@/functions/convert-usdt-to-price'
 import { roundToDecimals } from '@/functions/round-to-decimals'
 import { splitSymbolByUSDT } from '@/functions/split-symbol-by-usdt'
+import { usePositionsQuery } from '@/hooks/query/use-position-information-query'
 import { useSplitOrdersQuery } from '@/hooks/query/use-split-orders-query'
 import { useSymbolPriceQuery } from '@/hooks/query/use-symbol-price-query'
 import { useSymbolsQuery } from '@/hooks/query/use-symbols-query'
@@ -74,6 +76,9 @@ export function SplitOrder() {
   const queryClient = useQueryClient()
   const { mutate: splitOrders, isPending: isPendingSplitOrder } =
     useSplitOrdersQuery()
+  const { data: positions } = usePositionsQuery({ onlyOpenPositions: false })
+  const [leverage, setLeverage] = useState<string | undefined>()
+  const [marginType, setMarginType] = useState<string | undefined>()
 
   async function handleCreateSplitOrder(data: SplitOrderSchema) {
     await Promise.all([
@@ -128,6 +133,13 @@ export function SplitOrder() {
 
     if (symbolWatch && symbolWatch.length > 0) {
       setCurrencies(splitSymbolByUSDT(symbolWatch))
+      const position = positions?.find(
+        (position) => position.symbol === symbolWatch,
+      )
+      if (position) {
+        setLeverage(`${position.leverage}x`)
+        setMarginType(position.marginType)
+      }
     }
   }, [lastPrice])
 
@@ -145,25 +157,37 @@ export function SplitOrder() {
               <FormLabel>Symbol</FormLabel>
 
               <Popover open={open} onOpenChange={setOpen}>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      className={cn(
-                        'justify-between',
-                        !field.value && 'text-muted-foreground',
-                      )}
-                    >
-                      {field.value
-                        ? symbols?.find(
-                            (symbol) => symbol.symbol === field.value,
-                          )?.symbol
-                        : 'Select symbol'}
-                      <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
+                <div className="flex gap-2">
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        className={cn(
+                          'justify-between w-full truncate',
+                          !field.value && 'text-muted-foreground',
+                        )}
+                      >
+                        {field.value
+                          ? symbols?.find(
+                              (symbol) => symbol.symbol === field.value,
+                            )?.symbol
+                          : 'Select symbol'}
+                        <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  {leverage && (
+                    <Button type="button" variant="outline">
+                      {leverage}
                     </Button>
-                  </FormControl>
-                </PopoverTrigger>
+                  )}
+                  {marginType && (
+                    <Button type="button" variant="outline">
+                      {capitalizeFirstLetter(marginType)}
+                    </Button>
+                  )}
+                </div>
                 <PopoverContent className="dark border-slate-800 bg-transparent p-0">
                   <Command>
                     {isPendingSymbols ? (
