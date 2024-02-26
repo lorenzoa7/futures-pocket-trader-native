@@ -49,6 +49,7 @@ import { Check, ChevronsUpDown } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
+import { LeveragePopover } from './leverage-popover'
 
 export function SingleOrder() {
   const form = useForm<SingleOrderSchema>({
@@ -77,7 +78,6 @@ export function SingleOrder() {
     useSymbolPriceQuery(symbolWatch)
   const { mutate: newOrder, isPending: isPendingNewOrder } = useNewOrderQuery()
   const { data: positions } = usePositionsQuery({ onlyOpenPositions: false })
-  const [leverage, setLeverage] = useState<string | undefined>()
   const [marginType, setMarginType] = useState<string | undefined>()
 
   async function handleCreateOrder(data: SingleOrderSchema) {
@@ -132,7 +132,6 @@ export function SingleOrder() {
         (position) => position.symbol === symbolWatch,
       )
       if (position) {
-        setLeverage(`${position.leverage}x`)
         setMarginType(position.marginType)
       }
     }
@@ -172,10 +171,8 @@ export function SingleOrder() {
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
-                  {leverage && (
-                    <Button type="button" variant="outline">
-                      {leverage}
-                    </Button>
+                  {symbolWatch && symbolWatch.length > 0 && (
+                    <LeveragePopover symbol={symbolWatch} />
                   )}
                   {marginType && (
                     <Button type="button" variant="outline">

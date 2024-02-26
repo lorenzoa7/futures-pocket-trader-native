@@ -46,6 +46,7 @@ import {
 } from '../ui/select'
 import { Slider } from '../ui/slider'
 import Spinner from '../ui/spinner'
+import { LeveragePopover } from './leverage-popover'
 
 export function SplitOrder() {
   const form = useForm<SplitOrderSchema>({
@@ -77,7 +78,7 @@ export function SplitOrder() {
   const { mutate: splitOrders, isPending: isPendingSplitOrder } =
     useSplitOrdersQuery()
   const { data: positions } = usePositionsQuery({ onlyOpenPositions: false })
-  const [leverage, setLeverage] = useState<string | undefined>()
+
   const [marginType, setMarginType] = useState<string | undefined>()
 
   async function handleCreateSplitOrder(data: SplitOrderSchema) {
@@ -137,7 +138,6 @@ export function SplitOrder() {
         (position) => position.symbol === symbolWatch,
       )
       if (position) {
-        setLeverage(`${position.leverage}x`)
         setMarginType(position.marginType)
       }
     }
@@ -177,10 +177,8 @@ export function SplitOrder() {
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
-                  {leverage && (
-                    <Button type="button" variant="outline">
-                      {leverage}
-                    </Button>
+                  {symbolWatch && symbolWatch.length > 0 && (
+                    <LeveragePopover symbol={symbolWatch} />
                   )}
                   {marginType && (
                     <Button type="button" variant="outline">
