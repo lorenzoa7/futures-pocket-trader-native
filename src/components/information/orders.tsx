@@ -11,7 +11,7 @@ import {
 } from '@/schemas/information-filter-schema'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useQueryClient } from '@tanstack/react-query'
-import { Check, ChevronsUpDown, Trash2 } from 'lucide-react'
+import { Check, ChevronsUpDown, RefreshCcw, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Button } from '../ui/button'
@@ -38,7 +38,11 @@ import {
 } from '../ui/table'
 
 export function Orders() {
-  const { data: orders, isPending: isPendingOrders } = useOpenOrdersQuery()
+  const {
+    data: orders,
+    isPending: isPendingOrders,
+    isFetching: isFetchingOrders,
+  } = useOpenOrdersQuery()
   const { apiKey, isTestnetAccount, secretKey } = useAccountStore()
   const { mutateAsync: cancelOrder, isPending: isPendingCancelOrder } =
     useCancelOrderQuery()
@@ -70,6 +74,10 @@ export function Orders() {
           (!data.side || data.side === getOrderSide(order.side)),
       )
     })
+  }
+
+  const handleRefreshOrders = () => {
+    queryClient.invalidateQueries({ queryKey: ['open-orders'] })
   }
 
   const [openSymbolFilter, setOpenSymbolFilter] = useState(false)
@@ -243,6 +251,19 @@ export function Orders() {
                 </FormItem>
               )}
             />
+            <div className="flex flex-1 justify-end pr-3">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="rounded-full"
+                onClick={handleRefreshOrders}
+              >
+                <RefreshCcw
+                  className={cn('size-4', isFetchingOrders && 'animate-spin')}
+                />
+              </Button>
+            </div>
           </div>
         </form>
       </Form>

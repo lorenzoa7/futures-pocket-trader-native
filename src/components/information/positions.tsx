@@ -9,7 +9,8 @@ import {
   informationFilterSchema,
 } from '@/schemas/information-filter-schema'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Check, ChevronsUpDown } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
+import { Check, ChevronsUpDown, RefreshCcw } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Button } from '../ui/button'
@@ -36,10 +37,15 @@ import {
 } from '../ui/table'
 
 export function Positions() {
-  const { data: positions, isPending: isPendingPositions } = usePositionsQuery({
+  const {
+    data: positions,
+    isPending: isPendingPositions,
+    isFetching: isFetchingPositions,
+  } = usePositionsQuery({
     onlyOpenPositions: true,
   })
   const [filteredPositions, setFilteredPositions] = useState(positions)
+  const queryClient = useQueryClient()
 
   const openPositionsSymbols = positions
     ? positions.map((position) => position.symbol)
@@ -72,6 +78,10 @@ export function Positions() {
             data.side === getPositionSide(Number(position.notional))),
       )
     })
+  }
+
+  const handleRefreshPositions = () => {
+    queryClient.invalidateQueries({ queryKey: ['positions'] })
   }
 
   const [openSymbolFilter, setOpenSymbolFilter] = useState(false)
@@ -245,6 +255,23 @@ export function Positions() {
                 </FormItem>
               )}
             />
+
+            <div className="flex flex-1 justify-end pr-3">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="rounded-full"
+                onClick={handleRefreshPositions}
+              >
+                <RefreshCcw
+                  className={cn(
+                    'size-4',
+                    isFetchingPositions && 'animate-spin',
+                  )}
+                />
+              </Button>
+            </div>
           </div>
         </form>
       </Form>
