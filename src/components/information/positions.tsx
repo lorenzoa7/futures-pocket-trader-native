@@ -299,7 +299,7 @@ export function Positions() {
                   )
                 })}
             </TableBody>
-            <TableFooter className="sticky bottom-0 z-10 translate-y-px dark:bg-slate-800">
+            <TableFooter className="sticky -bottom-px z-10 translate-y-px dark:bg-slate-800">
               <TableRow>
                 <TableCell colSpan={3}>Total (USDT)</TableCell>
                 <TableCell className="text-right">
