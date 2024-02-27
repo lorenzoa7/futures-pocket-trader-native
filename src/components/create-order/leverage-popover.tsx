@@ -92,7 +92,7 @@ export function LeveragePopover({ symbol }: Props) {
               name="leverage"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Leverage - {field.value}%</FormLabel>
+                  <FormLabel>Leverage - {field.value}x</FormLabel>
                   <FormControl>
                     <Slider
                       min={1}
