@@ -24,5 +24,5 @@ export const navConfig: NavItem[] = [
 export const navTitles = {
   '/account': 'Account',
   '/create-order': 'Create order',
-  '/information': 'Open information',
+  '/information': 'Information',
 } satisfies Record<SiteRoutes[keyof SiteRoutes], string>

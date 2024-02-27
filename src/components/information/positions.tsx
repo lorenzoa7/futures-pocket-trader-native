@@ -276,8 +276,9 @@ export function Positions() {
                   )
                   return (
                     <TableRow key={index}>
-                      <TableCell className="font-medium">
-                        {position.symbol}
+                      <TableCell className="flex gap-1.5 font-medium">
+                        <span>{position.symbol}</span>
+                        <span className="rounded bg-stone-800 px-1 text-yellow-500">{`${position.leverage}x`}</span>
                       </TableCell>
                       <TableCell
                         data-long={positionSide === 'LONG'}

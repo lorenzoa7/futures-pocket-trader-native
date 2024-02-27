@@ -10,8 +10,8 @@ export function Information() {
         className="flex w-[500px] flex-col items-center justify-center"
       >
         <TabsList>
-          <TabsTrigger value="positions">Positions</TabsTrigger>
-          <TabsTrigger value="orders">Orders</TabsTrigger>
+          <TabsTrigger value="positions">Open positions</TabsTrigger>
+          <TabsTrigger value="orders">Open orders</TabsTrigger>
         </TabsList>
         <TabsContent value="positions" className="mt-0">
           <Positions />
