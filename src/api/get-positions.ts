@@ -13,7 +13,7 @@ export type Position = {
   liquidationPrice: string
   leverage: string
   maxNotionalValue: string
-  marginType: string
+  marginType: 'isolated' | 'cross'
   isolatedMargin: string
   isAutoAddMargin: 'false' | 'true'
   positionSide: 'LONG' | 'SHORT' | 'BOTH'

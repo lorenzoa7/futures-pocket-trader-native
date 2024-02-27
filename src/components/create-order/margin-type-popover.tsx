@@ -1,52 +1,48 @@
 import { stopPropagate } from '@/functions/stop-propagate'
 import { usePositionsQuery } from '@/hooks/query/use-position-information-query'
-import { useSetLeverageQuery } from '@/hooks/query/use-set-leverage-query'
+import { useSetMarginTypeQuery } from '@/hooks/query/use-set-margin-type-query'
 import { useAccountStore } from '@/hooks/store/use-account-store'
-import { LeverageSchema, leverageSchema } from '@/schemas/leverage-schema'
+import {
+  MarginTypeSchema,
+  marginTypeSchema,
+} from '@/schemas/margin-type-schema'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Button } from '../ui/button'
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '../ui/form'
+import { Form, FormControl, FormField, FormItem, FormMessage } from '../ui/form'
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover'
-import { Slider } from '../ui/slider'
+import { RadioGroup, RadioGroupItem } from '../ui/radio-group'
 import Spinner from '../ui/spinner'
 
 type Props = {
   symbol: string
 }
 
-export function LeveragePopover({ symbol }: Props) {
+export function MarginTypePopover({ symbol }: Props) {
   const [open, setOpen] = useState(false)
   const { apiKey, isTestnetAccount, secretKey } = useAccountStore()
   const { data: positions, isPending: isPendingPositions } = usePositionsQuery({
     onlyOpenPositions: false,
   })
-  const { mutateAsync: setLeverage, isPending: isPendingSetLeverage } =
-    useSetLeverageQuery()
+  const { mutateAsync: setMarginType, isPending: isPendingSetMarginType } =
+    useSetMarginTypeQuery()
 
   const queryClient = useQueryClient()
 
-  const form = useForm<LeverageSchema>({
-    resolver: zodResolver(leverageSchema),
+  const form = useForm<MarginTypeSchema>({
+    resolver: zodResolver(marginTypeSchema),
     defaultValues: {
       symbol,
-      leverage: 20,
+      marginType: 'CROSSED',
     },
   })
 
   const setValue = form.setValue
 
-  async function handleSetLeverage(data: LeverageSchema) {
-    await setLeverage({
+  async function handleSetMarginType(data: MarginTypeSchema) {
+    await setMarginType({
       apiKey,
       secretKey,
       isTestnetAccount,
@@ -60,7 +56,10 @@ export function LeveragePopover({ symbol }: Props) {
     const position = positions?.find((position) => position.symbol === symbol)
 
     if (position) {
-      setValue('leverage', Number(position.leverage))
+      setValue(
+        'marginType',
+        position.marginType === 'isolated' ? 'ISOLATED' : 'CROSSED',
+      )
     }
   }, [open])
 
@@ -71,39 +70,44 @@ export function LeveragePopover({ symbol }: Props) {
           {isPendingPositions || !positions ? (
             <Spinner className="fill-white text-slate-800" />
           ) : (
-            `${positions.find((position) => position.symbol === symbol)?.leverage}x`
+            `${positions.find((position) => position.symbol === symbol)?.marginType === 'isolated' ? 'Isolated' : 'Cross'}`
           )}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="border-slate-800 bg-slate-950 text-slate-50">
         <Form {...form}>
           <form
-            onSubmit={stopPropagate(form.handleSubmit(handleSetLeverage))}
+            onSubmit={stopPropagate(form.handleSubmit(handleSetMarginType))}
             className="space-y-5"
           >
             <div className="mb-5 space-y-2">
-              <h4 className="font-medium leading-none">Adjust leverage</h4>
+              <h4 className="font-medium leading-none">Adjust margin type</h4>
               <p className="text-muted-foreground text-sm">
-                Set the leverage for {symbol}.
+                Set the margin type for {symbol}.
               </p>
             </div>
             <FormField
               control={form.control}
-              name="leverage"
+              name="marginType"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Leverage - {field.value}%</FormLabel>
+                <FormItem className="space-y-3">
                   <FormControl>
-                    <Slider
-                      min={1}
-                      max={125}
-                      step={1}
-                      defaultValue={[field.value]}
-                      onValueChange={(vals) => {
-                        field.onChange(vals[0])
-                      }}
-                      className="dark"
-                    />
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      className="flex space-x-1"
+                    >
+                      <FormItem className="flex items-center space-x-3 space-y-0">
+                        <FormControl>
+                          <RadioGroupItem label="Isolated" value="ISOLATED" />
+                        </FormControl>
+                      </FormItem>
+                      <FormItem className="flex items-center space-x-3 space-y-0">
+                        <FormControl>
+                          <RadioGroupItem label="Cross" value="CROSSED" />
+                        </FormControl>
+                      </FormItem>
+                    </RadioGroup>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -113,12 +117,12 @@ export function LeveragePopover({ symbol }: Props) {
               type="submit"
               className="flex w-32 items-center gap-2 border-slate-800 bg-slate-950 hover:bg-slate-800 hover:text-slate-50"
               variant="outline"
-              disabled={isPendingSetLeverage || isPendingPositions}
+              disabled={isPendingSetMarginType || isPendingPositions}
               onClick={(e) => {
                 e.stopPropagation()
               }}
             >
-              {(isPendingSetLeverage || isPendingPositions) && (
+              {(isPendingSetMarginType || isPendingPositions) && (
                 <Spinner className="fill-white text-slate-800" />
               )}
               Confirm

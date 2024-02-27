@@ -29,12 +29,10 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import Spinner from '@/components/ui/spinner'
-import { capitalizeFirstLetter } from '@/functions/capitalize-first-letter'
 import { convertUsdtToPrice } from '@/functions/convert-usdt-to-price'
 import { roundToDecimals } from '@/functions/round-to-decimals'
 import { splitSymbolByUSDT } from '@/functions/split-symbol-by-usdt'
 import { useNewOrderQuery } from '@/hooks/query/use-new-order-query'
-import { usePositionsQuery } from '@/hooks/query/use-position-information-query'
 import { useSymbolPriceQuery } from '@/hooks/query/use-symbol-price-query'
 import { useSymbolsQuery } from '@/hooks/query/use-symbols-query'
 import { useAccountStore } from '@/hooks/store/use-account-store'
@@ -50,6 +48,7 @@ import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { LeveragePopover } from './leverage-popover'
+import { MarginTypePopover } from './margin-type-popover'
 
 export function SingleOrder() {
   const form = useForm<SingleOrderSchema>({
@@ -77,8 +76,6 @@ export function SingleOrder() {
   const { data: lastPrice, isPending: isPendingPrice } =
     useSymbolPriceQuery(symbolWatch)
   const { mutate: newOrder, isPending: isPendingNewOrder } = useNewOrderQuery()
-  const { data: positions } = usePositionsQuery({ onlyOpenPositions: false })
-  const [marginType, setMarginType] = useState<string | undefined>()
 
   async function handleCreateOrder(data: SingleOrderSchema) {
     await Promise.all([
@@ -128,12 +125,6 @@ export function SingleOrder() {
 
     if (symbolWatch && symbolWatch.length > 0) {
       setCurrencies(splitSymbolByUSDT(symbolWatch))
-      const position = positions?.find(
-        (position) => position.symbol === symbolWatch,
-      )
-      if (position) {
-        setMarginType(position.marginType)
-      }
     }
   }, [lastPrice])
 
@@ -172,12 +163,10 @@ export function SingleOrder() {
                     </FormControl>
                   </PopoverTrigger>
                   {symbolWatch && symbolWatch.length > 0 && (
-                    <LeveragePopover symbol={symbolWatch} />
-                  )}
-                  {marginType && (
-                    <Button type="button" variant="outline">
-                      {capitalizeFirstLetter(marginType)}
-                    </Button>
+                    <>
+                      <LeveragePopover symbol={symbolWatch} />
+                      <MarginTypePopover symbol={symbolWatch} />
+                    </>
                   )}
                 </div>
                 <PopoverContent className="dark border-slate-800 bg-transparent p-0">
