@@ -1,8 +1,6 @@
-import { capitalizeFirstLetter } from '@/functions/capitalize-first-letter'
 import { convertUsdtToPrice } from '@/functions/convert-usdt-to-price'
 import { roundToDecimals } from '@/functions/round-to-decimals'
 import { splitSymbolByUSDT } from '@/functions/split-symbol-by-usdt'
-import { usePositionsQuery } from '@/hooks/query/use-position-information-query'
 import { useSplitOrdersQuery } from '@/hooks/query/use-split-orders-query'
 import { useSymbolPriceQuery } from '@/hooks/query/use-symbol-price-query'
 import { useSymbolsQuery } from '@/hooks/query/use-symbols-query'
@@ -47,6 +45,7 @@ import {
 import { Slider } from '../ui/slider'
 import Spinner from '../ui/spinner'
 import { LeveragePopover } from './leverage-popover'
+import { MarginTypePopover } from './margin-type-popover'
 
 export function SplitOrder() {
   const form = useForm<SplitOrderSchema>({
@@ -77,9 +76,6 @@ export function SplitOrder() {
   const queryClient = useQueryClient()
   const { mutate: splitOrders, isPending: isPendingSplitOrder } =
     useSplitOrdersQuery()
-  const { data: positions } = usePositionsQuery({ onlyOpenPositions: false })
-
-  const [marginType, setMarginType] = useState<string | undefined>()
 
   async function handleCreateSplitOrder(data: SplitOrderSchema) {
     await Promise.all([
@@ -134,12 +130,6 @@ export function SplitOrder() {
 
     if (symbolWatch && symbolWatch.length > 0) {
       setCurrencies(splitSymbolByUSDT(symbolWatch))
-      const position = positions?.find(
-        (position) => position.symbol === symbolWatch,
-      )
-      if (position) {
-        setMarginType(position.marginType)
-      }
     }
   }, [lastPrice])
 
@@ -178,12 +168,10 @@ export function SplitOrder() {
                     </FormControl>
                   </PopoverTrigger>
                   {symbolWatch && symbolWatch.length > 0 && (
-                    <LeveragePopover symbol={symbolWatch} />
-                  )}
-                  {marginType && (
-                    <Button type="button" variant="outline">
-                      {capitalizeFirstLetter(marginType)}
-                    </Button>
+                    <>
+                      <LeveragePopover symbol={symbolWatch} />
+                      <MarginTypePopover symbol={symbolWatch} />
+                    </>
                   )}
                 </div>
                 <PopoverContent className="dark border-slate-800 bg-transparent p-0">
