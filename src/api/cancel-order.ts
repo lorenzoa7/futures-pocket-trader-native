@@ -1,8 +1,8 @@
 import { defaultParams } from '@/config/connections'
 import { api } from '@/functions/api'
 import { generateQueryString } from '@/functions/generate-query-string'
+import { QueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { SetLeverageResponse } from './set-leverage'
 
 export type CancelOrderResponse = {
   clientOrderId: string
@@ -38,6 +38,7 @@ type Props = {
   isTestnetAccount: boolean
   symbol: string
   orderId: number
+  queryClient: QueryClient
   dispatchSuccessMessage?: boolean
   dispatchErrorMessage?: boolean
 }
@@ -48,6 +49,7 @@ export async function cancelOrder({
   isTestnetAccount,
   symbol,
   orderId,
+  queryClient,
   dispatchSuccessMessage = true,
   dispatchErrorMessage = true,
 }: Props) {
@@ -62,15 +64,16 @@ export async function cancelOrder({
   const url = `/fapi/v1/order${query}`
 
   try {
-    await api<SetLeverageResponse>({
+    await api<CancelOrderResponse>({
       method: 'delete',
       apiKey,
       isTestnetAccount,
       url,
     })
+    await queryClient.invalidateQueries({ queryKey: ['open-orders'] })
 
     if (dispatchSuccessMessage) {
-      toast.success(`Order canceled successfully`)
+      toast.success(`Order canceled successfully!`)
     }
   } catch (error) {
     if (dispatchErrorMessage) {

@@ -1,5 +1,6 @@
 import { sides } from '@/config/currency'
 import { getOrderSide } from '@/functions/get-order-side'
+import { useCancelAllOpenOrdersQuery } from '@/hooks/query/use-cancel-all-open-orders-query'
 import { useCancelOrderQuery } from '@/hooks/query/use-cancel-order-query'
 import { useOpenOrdersQuery } from '@/hooks/query/use-open-orders-query'
 import { useAccountStore } from '@/hooks/store/use-account-store'
@@ -41,6 +42,10 @@ export function Orders() {
   const { apiKey, isTestnetAccount, secretKey } = useAccountStore()
   const { mutateAsync: cancelOrder, isPending: isPendingCancelOrder } =
     useCancelOrderQuery()
+  const {
+    mutateAsync: cancelAllOpenOrders,
+    isPending: isPendingCancelAllOpenOrders,
+  } = useCancelAllOpenOrdersQuery()
   const [filteredOrders, setFilteredOrders] = useState(orders)
   const queryClient = useQueryClient()
 
@@ -65,12 +70,6 @@ export function Orders() {
           (!data.side || data.side === getOrderSide(order.side)),
       )
     })
-  }
-
-  const handleCancelOrder = async (symbol: string, orderId: number) => {
-    await cancelOrder({ apiKey, secretKey, isTestnetAccount, symbol, orderId })
-
-    await queryClient.invalidateQueries({ queryKey: ['open-orders'] })
   }
 
   const [openSymbolFilter, setOpenSymbolFilter] = useState(false)
@@ -266,8 +265,23 @@ export function Orders() {
                     size="sm"
                     variant="ghost"
                     className="px-0 text-yellow-500 dark:hover:text-yellow-400"
+                    onClick={() => {
+                      if (orders) {
+                        cancelAllOpenOrders({
+                          apiKey,
+                          isTestnetAccount,
+                          secretKey,
+                          queryClient,
+                          symbols: orders.map((order) => order.symbol),
+                        })
+                      }
+                    }}
                   >
-                    Cancel all
+                    {isPendingCancelAllOpenOrders ? (
+                      <Spinner />
+                    ) : (
+                      <span>Cancel all</span>
+                    )}
                   </Button>
                 </TableHead>
               </TableRow>
@@ -305,7 +319,14 @@ export function Orders() {
                           className="size-4"
                           disabled={isPendingCancelOrder}
                           onClick={() => {
-                            handleCancelOrder(order.symbol, order.orderId)
+                            cancelOrder({
+                              apiKey,
+                              secretKey,
+                              isTestnetAccount,
+                              symbol: order.symbol,
+                              orderId: order.orderId,
+                              queryClient,
+                            })
                           }}
                         >
                           {isPendingCancelOrder ? (
