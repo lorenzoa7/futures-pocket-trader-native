@@ -54,7 +54,7 @@ export function SplitOrder() {
     defaultValues: {
       symbol: '',
       price: 0,
-      quantity: 0,
+      size: 0,
       side: 'BUY',
       isUsdtQuantity: false,
       ordersQuantity: 2,
@@ -103,18 +103,18 @@ export function SplitOrder() {
     if (!precision) {
       toast.error('Something went wrong. Check the parameters and try again!')
     } else {
-      data.quantity =
+      data.size =
         lastPrice && data.isUsdtQuantity
           ? roundToDecimals(
-              convertUsdtToPrice(data.quantity, lastPrice),
+              convertUsdtToPrice(data.size, lastPrice),
               precision?.quantity || 0,
             )
-          : roundToDecimals(data.quantity, precision?.quantity || 0)
+          : roundToDecimals(data.size, precision?.quantity || 0)
 
       data.price = roundToDecimals(data.price, precision?.price || 0)
 
-      if (data.quantity <= 0) {
-        toast.error('Quantity is too low. Set a new quantity and try again.')
+      if (data.size <= 0) {
+        toast.error('Size is too low. Set a new size and try again.')
       } else {
         splitOrders({
           apiKey,
@@ -275,10 +275,10 @@ export function SplitOrder() {
 
         <FormField
           control={form.control}
-          name="quantity"
+          name="size"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Quantity</FormLabel>
+              <FormLabel>Size</FormLabel>
               <div className="flex gap-2">
                 <FormControl>
                   <Input

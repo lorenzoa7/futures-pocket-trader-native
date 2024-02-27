@@ -38,7 +38,7 @@ export async function splitOrders({
         const params = {
           symbol: data.symbol,
           side: data.side,
-          quantity: data.quantity,
+          quantity: data.size,
           price,
           type: 'LIMIT',
           timeInForce: 'GTC',
