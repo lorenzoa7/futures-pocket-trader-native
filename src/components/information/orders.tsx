@@ -1,13 +1,16 @@
 import { sides } from '@/config/currency'
 import { getOrderSide } from '@/functions/get-order-side'
+import { useCancelOrderQuery } from '@/hooks/query/use-cancel-order-query'
 import { useOpenOrdersQuery } from '@/hooks/query/use-open-orders-query'
+import { useAccountStore } from '@/hooks/store/use-account-store'
 import { cn } from '@/lib/utils'
 import {
   InformationFilterSchema,
   informationFilterSchema,
 } from '@/schemas/information-filter-schema'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Check, ChevronsUpDown } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
+import { Check, ChevronsUpDown, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Button } from '../ui/button'
@@ -35,7 +38,11 @@ import {
 
 export function Orders() {
   const { data: orders, isPending: isPendingOrders } = useOpenOrdersQuery()
+  const { apiKey, isTestnetAccount, secretKey } = useAccountStore()
+  const { mutateAsync: cancelOrder, isPending: isPendingCancelOrder } =
+    useCancelOrderQuery()
   const [filteredOrders, setFilteredOrders] = useState(orders)
+  const queryClient = useQueryClient()
 
   const openOrdersSymbols = orders ? orders.map((order) => order.symbol) : []
 
@@ -58,6 +65,12 @@ export function Orders() {
           (!data.side || data.side === getOrderSide(order.side)),
       )
     })
+  }
+
+  const handleCancelOrder = async (symbol: string, orderId: number) => {
+    await cancelOrder({ apiKey, secretKey, isTestnetAccount, symbol, orderId })
+
+    await queryClient.invalidateQueries({ queryKey: ['open-orders'] })
   }
 
   const [openSymbolFilter, setOpenSymbolFilter] = useState(false)
@@ -247,6 +260,16 @@ export function Orders() {
                 <TableHead className="w-52">Side</TableHead>
                 <TableHead className="w-52">Price</TableHead>
                 <TableHead className="w-52 text-right">Amount</TableHead>
+                <TableHead className="w-56 text-center">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    className="px-0 text-yellow-500 dark:hover:text-yellow-400"
+                  >
+                    Cancel all
+                  </Button>
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -274,13 +297,31 @@ export function Orders() {
                       <TableCell className="text-right">
                         {`$ ${(Number(order.price) * Number(order.origQty)).toFixed(2)}`}
                       </TableCell>
+                      <TableCell className="flex justify-center text-center">
+                        <Button
+                          type="button"
+                          size="icon"
+                          variant="ghost"
+                          className="size-4"
+                          disabled={isPendingCancelOrder}
+                          onClick={() => {
+                            handleCancelOrder(order.symbol, order.orderId)
+                          }}
+                        >
+                          {isPendingCancelOrder ? (
+                            <Spinner className="size-4 fill-slate-50 text-slate-600" />
+                          ) : (
+                            <Trash2 className="size-4 text-slate-400 transition-colors hover:text-slate-50" />
+                          )}
+                        </Button>
+                      </TableCell>
                     </TableRow>
                   )
                 })}
             </TableBody>
             <TableFooter className="sticky -bottom-px z-10 dark:bg-slate-800">
               <TableRow>
-                <TableCell colSpan={3}>Total (USDT)</TableCell>
+                <TableCell colSpan={4}>Total (USDT)</TableCell>
                 <TableCell className="text-right">
                   <span className="mr-1">$</span>
                   {filteredOrders
