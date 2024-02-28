@@ -53,7 +53,9 @@ export function Orders() {
   const [filteredOrders, setFilteredOrders] = useState(orders)
   const queryClient = useQueryClient()
 
-  const openOrdersSymbols = orders ? orders.map((order) => order.symbol) : []
+  const openOrdersSymbols = orders
+    ? [...new Set(orders.map((order) => order.symbol))]
+    : []
 
   const form = useForm<InformationFilterSchema>({
     resolver: zodResolver(informationFilterSchema),
