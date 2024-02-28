@@ -29,9 +29,7 @@ import {
 type Props = {
   open: boolean
   setOpen: React.Dispatch<React.SetStateAction<boolean>>
-  setPrices: React.Dispatch<React.SetStateAction<number[]>>
   setData: React.Dispatch<React.SetStateAction<SplitOrderSchema | undefined>>
-  prices: number[]
   data?: SplitOrderSchema
 }
 
@@ -39,9 +37,7 @@ export function ConfirmSplitOrderDialog({
   open,
   setOpen,
   setData,
-  setPrices,
   data,
-  prices,
 }: Props) {
   const orderSide = getOrderSide(data ? data.side : 'BUY')
   const { mutateAsync: splitOrders, isPending } = useSplitOrdersQuery()
@@ -50,7 +46,14 @@ export function ConfirmSplitOrderDialog({
 
   const handleConfirmSplitOrder = async () => {
     if (data) {
-      await splitOrders({ apiKey, secretKey, isTestnetAccount, data, prices })
+      await splitOrders({
+        apiKey,
+        secretKey,
+        isTestnetAccount,
+        data,
+        prices: data.prices,
+        sizes: data.sizes,
+      })
 
       await Promise.all([
         queryClient.invalidateQueries({
@@ -59,7 +62,6 @@ export function ConfirmSplitOrderDialog({
         queryClient.invalidateQueries({ queryKey: ['positions'] }),
       ])
 
-      setPrices([])
       setData(undefined)
       setOpen(false)
     }
@@ -91,7 +93,7 @@ export function ConfirmSplitOrderDialog({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {prices.map((price, index) => (
+                {data.prices.map((price, index) => (
                   <TableRow
                     key={index}
                     className="text-slate-50 hover:bg-slate-800/50 data-[state=selected]:bg-slate-800"
@@ -106,7 +108,7 @@ export function ConfirmSplitOrderDialog({
                     </TableCell>
                     <TableCell>{price.toFixed(2)}</TableCell>
                     <TableCell className="text-right">
-                      {`$ ${convertPriceToUsdt(data.size, price).toFixed(2)}`}
+                      {`$ ${convertPriceToUsdt(data.sizes[index], price).toFixed(2)}`}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -118,10 +120,10 @@ export function ConfirmSplitOrderDialog({
                   </TableCell>
                   <TableCell className="text-right text-slate-300">
                     <span className="mr-1">$</span>
-                    {prices
+                    {data.prices
                       .reduce(
-                        (total, price) =>
-                          total + convertPriceToUsdt(data.size, price),
+                        (total, price, index) =>
+                          total + convertPriceToUsdt(data.sizes[index], price),
                         0,
                       )
                       .toFixed(2)}

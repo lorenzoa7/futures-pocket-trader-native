@@ -12,6 +12,7 @@ type Props = {
   isTestnetAccount: boolean
   data: SplitOrderSchema
   prices: number[]
+  sizes: number[]
   dispatchSuccessMessage?: boolean
   dispatchErrorMessage?: boolean
 }
@@ -22,15 +23,16 @@ export async function splitOrders({
   isTestnetAccount,
   data,
   prices,
+  sizes,
   dispatchSuccessMessage = true,
   dispatchErrorMessage = true,
 }: Props) {
   try {
-    const promises = prices.map((price) => {
+    const promises = prices.map((price, index) => {
       const params = {
         symbol: data.symbol,
         side: data.side,
-        quantity: data.size,
+        quantity: sizes[index],
         price,
         type: 'LIMIT',
         timeInForce: 'GTC',

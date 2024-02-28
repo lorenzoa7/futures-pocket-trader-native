@@ -11,6 +11,8 @@ export const splitOrderSchema = z
     dropPercentage: z.coerce.number().int().gte(1).lt(100),
     side: z.enum(['BUY', 'SELL']),
     isUsdtQuantity: z.boolean(),
+    prices: z.array(z.number()),
+    sizes: z.array(z.number()),
   })
   .transform((schema) => ({
     ...schema,

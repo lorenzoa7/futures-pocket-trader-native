@@ -57,6 +57,8 @@ export function SplitOrder() {
       isUsdtQuantity: false,
       ordersQuantity: 2,
       dropPercentage: 10,
+      prices: [],
+      sizes: [],
     },
   })
 
@@ -72,7 +74,6 @@ export function SplitOrder() {
   const { data: lastPrice, isPending: isPendingPrice } =
     useSymbolPriceQuery(symbolWatch)
   const queryClient = useQueryClient()
-  const [prices, setPrices] = useState<number[]>([])
   const [data, setData] = useState<SplitOrderSchema>()
   const [openConfirmationDialog, setOpenConfirmationDialog] = useState(false)
 
@@ -94,34 +95,39 @@ export function SplitOrder() {
 
     if (!precision) {
       toast.error('Something went wrong. Check the parameters and try again!')
-    } else {
-      data.size =
-        lastPrice && data.isUsdtQuantity
-          ? roundToDecimals(
-              convertUsdtToPrice(data.size, lastPrice),
-              precision.quantity || 0,
-            )
-          : roundToDecimals(data.size, precision.quantity || 0)
-
-      data.price = roundToDecimals(data.price, precision.price || 0)
-
-      if (data.size <= 0) {
-        toast.error('Size is too low. Set a new size and try again.')
-      } else {
-        const prices = Array.from({ length: data.ordersQuantity }).map(
-          (_, index) =>
-            roundToDecimals(
-              (1 - (data.dropPercentage / data.ordersQuantity / 100) * index) *
-                data.price,
-              precision.price,
-            ),
-        )
-
-        setPrices(prices)
-        setData(data)
-        setOpenConfirmationDialog(true)
-      }
+      return
     }
+    data.price = roundToDecimals(data.price, precision.price || 0)
+
+    data.prices = Array.from({ length: data.ordersQuantity }).map((_, index) =>
+      roundToDecimals(
+        (1 - (data.dropPercentage / data.ordersQuantity / 100) * index) *
+          data.price,
+        precision.price,
+      ),
+    )
+
+    data.sizes = data.prices.map((price) =>
+      data.isUsdtQuantity
+        ? roundToDecimals(
+            convertUsdtToPrice(data.size, price),
+            precision.quantity || 0,
+          )
+        : roundToDecimals(data.size, precision.quantity || 0),
+    )
+
+    if (data.prices.some((price) => price <= 0)) {
+      toast.error('Price is too low. Set a new price and try again.')
+      return
+    }
+
+    if (data.sizes.some((size) => size <= 0)) {
+      toast.error('Size is too low. Set a new size and try again.')
+      return
+    }
+
+    setData(data)
+    setOpenConfirmationDialog(true)
   }
 
   useEffect(() => {
@@ -140,9 +146,7 @@ export function SplitOrder() {
         open={openConfirmationDialog}
         setOpen={setOpenConfirmationDialog}
         setData={setData}
-        setPrices={setPrices}
         data={data}
-        prices={prices}
       />
       <Form {...form}>
         <form
