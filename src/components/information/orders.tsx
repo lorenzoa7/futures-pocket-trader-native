@@ -380,7 +380,7 @@ export function Orders() {
             </TableFooter>
           </Table>
         ) : (
-          <div className="h-full w-[30.5rem] px-10 text-center">
+          <div className="h-full w-[36.75rem] px-10 text-center">
             <Label>
               There are no open orders or <br />
               no open orders matches your filters.

@@ -6,33 +6,54 @@ import { toast } from 'sonner'
 
 export type NewOrderResponse = Record<string, string | number | boolean>
 
+type LimitProps = {
+  type: 'LIMIT'
+  data: SingleOrderSchema
+}
+
+type MarketProps = {
+  type: 'MARKET'
+  data: Omit<SingleOrderSchema, 'price'>
+}
+
 type Props = {
   apiKey: string
   secretKey: string
   isTestnetAccount: boolean
-  data: SingleOrderSchema
-  dispatchSuccessMessage?: boolean
-  dispatchErrorMessage?: boolean
-}
+  noSuccessMessage?: boolean
+  noErrorMessage?: boolean
+} & (LimitProps | MarketProps)
 
-export async function newOrder({
-  apiKey,
-  secretKey,
-  isTestnetAccount,
-  data,
-  dispatchSuccessMessage = true,
-  dispatchErrorMessage = true,
-}: Props) {
-  const params = {
-    symbol: data.symbol,
-    side: data.side,
-    quantity: data.quantity,
-    price: data.price,
-    type: 'LIMIT',
-    timeInForce: 'GTC',
-    recvWindow: defaultParams.recvWindow,
-    timestamp: defaultParams.timestamp,
-  }
+export async function newOrder(props: Props) {
+  const {
+    apiKey,
+    isTestnetAccount,
+    secretKey,
+    type,
+    noErrorMessage,
+    noSuccessMessage,
+  } = props
+
+  const params =
+    type === 'LIMIT'
+      ? {
+          symbol: props.data.symbol,
+          side: props.data.side,
+          quantity: props.data.quantity,
+          price: props.data.price,
+          type: props.type,
+          timeInForce: 'GTC',
+          recvWindow: defaultParams.recvWindow,
+          timestamp: defaultParams.timestamp,
+        }
+      : {
+          symbol: props.data.symbol,
+          side: props.data.side,
+          quantity: props.data.quantity,
+          type: props.type,
+          recvWindow: defaultParams.recvWindow,
+          timestamp: defaultParams.timestamp,
+        }
 
   const query = generateQueryString({ params, secretKey })
   const url = `/fapi/v1/order${query}`
@@ -45,11 +66,11 @@ export async function newOrder({
       url,
     })
 
-    if (dispatchSuccessMessage) {
+    if (!noSuccessMessage) {
       toast.success('New order created successfully!')
     }
   } catch (error) {
-    if (dispatchErrorMessage) {
+    if (!noErrorMessage) {
       toast.error("Couldn't create a new order.", {
         description: error as string,
       })

@@ -1,13 +1,17 @@
+import { Position } from '@/api/get-positions'
 import { sides } from '@/config/currency'
 import { convertPriceToUsdt } from '@/functions/convert-price-to-usdt'
 import { getPositionSide } from '@/functions/get-position-side'
+import { useNewOrderQuery } from '@/hooks/query/use-new-order-query'
 import { usePositionsQuery } from '@/hooks/query/use-position-information-query'
 import { useSymbolsPriceQueries } from '@/hooks/query/use-symbols-price-queries'
+import { useAccountStore } from '@/hooks/store/use-account-store'
 import { cn } from '@/lib/utils'
 import {
   InformationFilterSchema,
   informationFilterSchema,
 } from '@/schemas/information-filter-schema'
+import { SingleOrderSchema } from '@/schemas/single-order-schema'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useQueryClient } from '@tanstack/react-query'
 import { Check, ChevronsUpDown, RefreshCcw } from 'lucide-react'
@@ -25,6 +29,7 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from '../ui/form'
 import { Label } from '../ui/label'
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover'
 import { ScrollArea } from '../ui/scroll-area'
+import { Separator } from '../ui/separator'
 import Spinner from '../ui/spinner'
 import {
   Table,
@@ -44,8 +49,11 @@ export function Positions() {
   } = usePositionsQuery({
     onlyOpenPositions: true,
   })
+  const { mutateAsync: newOrder, isPending: isPendingNewOrder } =
+    useNewOrderQuery()
   const [filteredPositions, setFilteredPositions] = useState(positions)
   const queryClient = useQueryClient()
+  const { apiKey, isTestnetAccount, secretKey } = useAccountStore()
 
   const openPositionsSymbols = positions
     ? positions.map((position) => position.symbol)
@@ -78,6 +86,35 @@ export function Positions() {
             data.side === getPositionSide(Number(position.notional))),
       )
     })
+  }
+
+  const handleCloseMarket = async (position: Position) => {
+    await queryClient.invalidateQueries({
+      queryKey: ['symbol-price', position.symbol],
+    })
+
+    const data: Omit<SingleOrderSchema, 'price'> = {
+      symbol: position.symbol,
+      isUsdtQuantity: false,
+      quantity: Math.abs(Number(position.positionAmt)),
+      side:
+        getPositionSide(Number(position.notional)) === 'LONG' ? 'SELL' : 'BUY',
+    }
+
+    await newOrder({
+      apiKey,
+      isTestnetAccount,
+      secretKey,
+      data,
+      type: 'MARKET',
+    })
+
+    await Promise.all([
+      queryClient.invalidateQueries({
+        queryKey: ['open-orders'],
+      }),
+      queryClient.invalidateQueries({ queryKey: ['positions'] }),
+    ])
   }
 
   const handleRefreshPositions = () => {
@@ -284,10 +321,25 @@ export function Positions() {
           <Table className="relative rounded-2xl" hasWrapper={false}>
             <TableHeader className="sticky top-0 z-10 w-full -translate-y-px bg-slate-800 ">
               <TableRow>
-                <TableHead className="w-52">Symbol</TableHead>
+                <TableHead className="w-56">Symbol</TableHead>
                 <TableHead className="w-52">Side</TableHead>
-                <TableHead className="w-52">Entry Price</TableHead>
-                <TableHead className="w-52 text-right">Size</TableHead>
+                <TableHead className="w-56">Entry Price</TableHead>
+                <TableHead className="w-56 text-right">Size</TableHead>
+                <TableHead className="w-56 text-center">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    className="px-0 text-yellow-500 dark:hover:text-yellow-400"
+                    onClick={() => {
+                      if (positions) {
+                        console.log('closed all positions')
+                      }
+                    }}
+                  >
+                    {isPendingNewOrder ? <Spinner /> : <span>Close all</span>}
+                  </Button>
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -323,13 +375,43 @@ export function Positions() {
                           prices[position.symbol] ?? 0,
                         ).toFixed(2)}`}
                       </TableCell>
+                      <TableCell className="flex justify-center gap-2 text-center">
+                        <Button
+                          type="button"
+                          variant="link"
+                          disabled={isPendingNewOrder}
+                          onClick={() => {
+                            handleCloseMarket(position)
+                          }}
+                          className="h-4 px-0 dark:text-yellow-500 dark:hover:text-yellow-400"
+                        >
+                          Market
+                        </Button>
+
+                        <Separator
+                          orientation="vertical"
+                          className="h-4 dark:bg-slate-700"
+                        />
+
+                        <Button
+                          type="button"
+                          variant="link"
+                          disabled={isPendingNewOrder}
+                          onClick={() => {
+                            console.log('limit closed position')
+                          }}
+                          className="h-4 px-0 dark:text-yellow-500 dark:hover:text-yellow-400"
+                        >
+                          Limit
+                        </Button>
+                      </TableCell>
                     </TableRow>
                   )
                 })}
             </TableBody>
             <TableFooter className="sticky -bottom-px z-10 translate-y-px dark:bg-slate-800">
               <TableRow>
-                <TableCell colSpan={3}>Total (USDT)</TableCell>
+                <TableCell colSpan={4}>Total (USDT)</TableCell>
                 <TableCell className="text-right">
                   <span className="mr-1">$</span>
                   {isPendingSymbolsPrices

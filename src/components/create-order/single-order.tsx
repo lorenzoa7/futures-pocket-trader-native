@@ -114,6 +114,7 @@ export function SingleOrder() {
         secretKey,
         isTestnetAccount,
         data,
+        type: 'LIMIT',
       })
     }
   }
