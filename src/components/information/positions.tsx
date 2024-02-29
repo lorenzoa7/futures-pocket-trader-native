@@ -88,11 +88,38 @@ export function Positions() {
     })
   }
 
-  const handleCloseMarket = async (position: Position) => {
-    await queryClient.invalidateQueries({
-      queryKey: ['symbol-price', position.symbol],
-    })
+  const handleCloseAll = async () => {
+    const dataList: Omit<SingleOrderSchema, 'price'>[] =
+      positions?.map((position) => ({
+        symbol: position.symbol,
+        isUsdtQuantity: false,
+        quantity: Math.abs(Number(position.positionAmt)),
+        side:
+          getPositionSide(Number(position.notional)) === 'LONG'
+            ? 'SELL'
+            : 'BUY',
+      })) ?? []
 
+    const promises = dataList.map((data) =>
+      newOrder({
+        apiKey,
+        isTestnetAccount,
+        secretKey,
+        data,
+        type: 'MARKET',
+      }),
+    )
+
+    await Promise.all(promises)
+    await Promise.all([
+      queryClient.invalidateQueries({
+        queryKey: ['open-orders'],
+      }),
+      queryClient.invalidateQueries({ queryKey: ['positions'] }),
+    ])
+  }
+
+  const handleCloseMarket = async (position: Position) => {
     const data: Omit<SingleOrderSchema, 'price'> = {
       symbol: position.symbol,
       isUsdtQuantity: false,
@@ -331,11 +358,7 @@ export function Positions() {
                     size="sm"
                     variant="ghost"
                     className="px-0 text-yellow-500 dark:hover:text-yellow-400"
-                    onClick={() => {
-                      if (positions) {
-                        console.log('closed all positions')
-                      }
-                    }}
+                    onClick={handleCloseAll}
                   >
                     {isPendingNewOrder ? <Spinner /> : <span>Close all</span>}
                   </Button>
