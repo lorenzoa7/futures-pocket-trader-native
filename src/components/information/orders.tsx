@@ -1,4 +1,5 @@
 import { sides } from '@/config/currency'
+import { convertPriceToUsdt } from '@/functions/convert-price-to-usdt'
 import { getOrderSide } from '@/functions/get-order-side'
 import { useCancelAllOpenOrdersQuery } from '@/hooks/query/use-cancel-all-open-orders-query'
 import { useCancelOrderQuery } from '@/hooks/query/use-cancel-order-query'
@@ -332,7 +333,7 @@ export function Orders() {
                       </TableCell>
                       <TableCell>{Number(order.price).toFixed(2)}</TableCell>
                       <TableCell className="text-right">
-                        {`$ ${(Number(order.price) * Number(order.origQty)).toFixed(2)}`}
+                        {`$ ${convertPriceToUsdt(Number(order.price), Number(order.origQty)).toFixed(2)}`}
                       </TableCell>
                       <TableCell className="flex justify-center text-center">
                         <Button

@@ -96,13 +96,12 @@ export function SingleOrder() {
       quote: selectedSymbolData.quotePrecision,
     }
 
-    data.quantity =
-      lastPrice && data.isUsdtQuantity
-        ? roundToDecimals(
-            convertUsdtToPrice(data.quantity, lastPrice),
-            precision?.quantity || 0,
-          )
-        : roundToDecimals(data.quantity, precision?.quantity || 0)
+    data.quantity = data.isUsdtQuantity
+      ? roundToDecimals(
+          convertUsdtToPrice(data.quantity, data.price),
+          precision?.quantity || 0,
+        )
+      : roundToDecimals(data.quantity, precision?.quantity || 0)
 
     data.price = roundToDecimals(data.price, precision?.price || 0)
 
