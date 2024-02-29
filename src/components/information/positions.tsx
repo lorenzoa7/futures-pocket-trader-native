@@ -107,6 +107,8 @@ export function Positions() {
         secretKey,
         data,
         type: 'MARKET',
+        successMessage: 'Close market order created successfully!',
+        errorMessage: "Couldn't create a close market order.",
       }),
     )
 
@@ -134,6 +136,8 @@ export function Positions() {
       secretKey,
       data,
       type: 'MARKET',
+      successMessage: 'Close market order created successfully!',
+      errorMessage: "Couldn't create a close market order.",
     })
 
     await Promise.all([

@@ -22,6 +22,8 @@ type Props = {
   isTestnetAccount: boolean
   noSuccessMessage?: boolean
   noErrorMessage?: boolean
+  successMessage?: string
+  errorMessage?: string
 } & (LimitProps | MarketProps)
 
 export async function newOrder(props: Props) {
@@ -67,11 +69,11 @@ export async function newOrder(props: Props) {
     })
 
     if (!noSuccessMessage) {
-      toast.success('New order created successfully!')
+      toast.success(props.successMessage ?? 'New order created successfully!')
     }
   } catch (error) {
     if (!noErrorMessage) {
-      toast.error("Couldn't create a new order.", {
+      toast.error(props.errorMessage ?? "Couldn't create a new order.", {
         description: error as string,
       })
     }
