@@ -71,7 +71,7 @@ ipcMain.handle(
 
 function createWindow() {
   win = new BrowserWindow({
-    icon: path.join(process.env.VITE_PUBLIC, 'bitcoin-icon.svg'),
+    icon: path.join(process.env.VITE_PUBLIC, 'bitcoin-icon.ico'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
     },
@@ -86,7 +86,7 @@ function createWindow() {
   win.setMenuBarVisibility(false)
 
   // Open dev tools
-  win.webContents.openDevTools()
+  !!VITE_DEV_SERVER_URL && win.webContents.openDevTools()
 
   // Test active push message to Renderer-process.
   win.webContents.on('did-finish-load', () => {

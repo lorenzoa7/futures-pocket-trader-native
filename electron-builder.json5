@@ -3,9 +3,9 @@
  */
 {
   "$schema": "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
-  "appId": "YourAppID",
+  "appId": "futures-pocket-trader",
   "asar": true,
-  "productName": "YourAppName",
+  "productName": "Futures Pocket Trader",
   "directories": {
     "output": "release/${version}"
   },
