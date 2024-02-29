@@ -2,9 +2,11 @@ import { Position } from '@/api/get-positions'
 import { sides } from '@/config/currency'
 import { convertPriceToUsdt } from '@/functions/convert-price-to-usdt'
 import { getPositionSide } from '@/functions/get-position-side'
+import { roundToDecimals } from '@/functions/round-to-decimals'
 import { useNewOrderQuery } from '@/hooks/query/use-new-order-query'
 import { usePositionsQuery } from '@/hooks/query/use-position-information-query'
 import { useSymbolsPriceQueries } from '@/hooks/query/use-symbols-price-queries'
+import { useSymbolsQuery } from '@/hooks/query/use-symbols-query'
 import { useAccountStore } from '@/hooks/store/use-account-store'
 import { cn } from '@/lib/utils'
 import {
@@ -40,6 +42,7 @@ import {
   TableHeader,
   TableRow,
 } from '../ui/table'
+import { CloseLimitPopover } from './close-limit-popover'
 
 export function Positions() {
   const {
@@ -54,6 +57,7 @@ export function Positions() {
   const [filteredPositions, setFilteredPositions] = useState(positions)
   const queryClient = useQueryClient()
   const { apiKey, isTestnetAccount, secretKey } = useAccountStore()
+  const { data: symbols } = useSymbolsQuery()
 
   const openPositionsSymbols = positions
     ? positions.map((position) => position.symbol)
@@ -69,9 +73,7 @@ export function Positions() {
   const form = useForm<InformationFilterSchema>({
     resolver: zodResolver(informationFilterSchema),
   })
-
-  const watch = form.watch
-  const handleSubmit = form.handleSubmit
+  const { watch, handleSubmit, setValue } = form
 
   const handleFilter = (data: InformationFilterSchema) => {
     setFilteredPositions((state) => {
@@ -135,20 +137,40 @@ export function Positions() {
       isTestnetAccount,
       secretKey,
       data,
+      queryClient,
       type: 'MARKET',
       successMessage: 'Close market order created successfully!',
       errorMessage: "Couldn't create a close market order.",
     })
+  }
 
-    await Promise.all([
-      queryClient.invalidateQueries({
-        queryKey: ['open-orders'],
-      }),
-      queryClient.invalidateQueries({ queryKey: ['positions'] }),
-    ])
+  const handleCloseLimit = async (data: SingleOrderSchema) => {
+    const symbolData = symbols?.find((item) => item.symbol === data.symbol)
+    const precision = symbolData && {
+      quantity: symbolData.quantityPrecision,
+      price: symbolData.pricePrecision,
+      baseAsset: symbolData.baseAssetPrecision,
+      quote: symbolData.quotePrecision,
+    }
+
+    data.quantity = roundToDecimals(data.quantity, precision?.quantity || 0)
+    data.price = roundToDecimals(data.price, precision?.price || 0)
+
+    await newOrder({
+      apiKey,
+      isTestnetAccount,
+      secretKey,
+      data,
+      queryClient,
+      type: 'LIMIT',
+      successMessage: 'Close limit order created successfully!',
+      errorMessage: "Couldn't create a close limit order.",
+    })
   }
 
   const handleRefreshPositions = () => {
+    setValue('symbol', undefined)
+    setValue('side', undefined)
     queryClient.invalidateQueries({ queryKey: ['positions'] })
   }
 
@@ -380,6 +402,9 @@ export function Positions() {
                   const positionSide = getPositionSide(
                     Number(position.notional),
                   )
+                  const symbolData = symbols?.find(
+                    (item) => item.symbol === position.symbol,
+                  )
                   return (
                     <TableRow key={index}>
                       <TableCell className="flex gap-1.5 font-medium">
@@ -420,17 +445,19 @@ export function Positions() {
                           className="h-4 dark:bg-slate-700"
                         />
 
-                        <Button
-                          type="button"
-                          variant="link"
-                          disabled={isPendingNewOrder}
-                          onClick={() => {
-                            console.log('limit closed position')
-                          }}
-                          className="h-4 px-0 dark:text-yellow-500 dark:hover:text-yellow-400"
-                        >
-                          Limit
-                        </Button>
+                        {symbolData && (
+                          <CloseLimitPopover
+                            quantity={roundToDecimals(
+                              Math.abs(Number(position.positionAmt)),
+                              symbolData.quantityPrecision,
+                            )}
+                            symbol={position.symbol}
+                            handleSubmit={handleCloseLimit}
+                            side={getPositionSide(Number(position.notional))}
+                            isPending={isPendingNewOrder}
+                            quantityPrecision={symbolData.quantityPrecision}
+                          />
+                        )}
                       </TableCell>
                     </TableRow>
                   )

@@ -2,6 +2,7 @@ import { defaultParams } from '@/config/connections'
 import { api } from '@/functions/api'
 import { generateQueryString } from '@/functions/generate-query-string'
 import { SingleOrderSchema } from '@/schemas/single-order-schema'
+import { QueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
 export type NewOrderResponse = Record<string, string | number | boolean>
@@ -20,6 +21,7 @@ type Props = {
   apiKey: string
   secretKey: string
   isTestnetAccount: boolean
+  queryClient?: QueryClient
   noSuccessMessage?: boolean
   noErrorMessage?: boolean
   successMessage?: string
@@ -34,6 +36,7 @@ export async function newOrder(props: Props) {
     type,
     noErrorMessage,
     noSuccessMessage,
+    queryClient,
   } = props
 
   const params =
@@ -67,6 +70,15 @@ export async function newOrder(props: Props) {
       isTestnetAccount,
       url,
     })
+
+    if (queryClient) {
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ['open-orders'],
+        }),
+        queryClient.invalidateQueries({ queryKey: ['positions'] }),
+      ])
+    }
 
     if (!noSuccessMessage) {
       toast.success(props.successMessage ?? 'New order created successfully!')

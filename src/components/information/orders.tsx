@@ -61,9 +61,7 @@ export function Orders() {
   const form = useForm<InformationFilterSchema>({
     resolver: zodResolver(informationFilterSchema),
   })
-
-  const watch = form.watch
-  const handleSubmit = form.handleSubmit
+  const { watch, handleSubmit, setValue } = form
 
   const handleFilter = (data: InformationFilterSchema) => {
     setFilteredOrders((state) => {
@@ -80,6 +78,8 @@ export function Orders() {
   }
 
   const handleRefreshOrders = () => {
+    setValue('symbol', undefined)
+    setValue('side', undefined)
     queryClient.invalidateQueries({ queryKey: ['open-orders'] })
   }
 
