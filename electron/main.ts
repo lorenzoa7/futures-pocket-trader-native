@@ -1,4 +1,5 @@
 import { app, BrowserWindow, ipcMain, IpcMainInvokeEvent } from 'electron'
+import { autoUpdater } from 'electron-updater'
 import path from 'node:path'
 
 // The built directory structure
@@ -68,6 +69,9 @@ ipcMain.handle(
     }
   },
 )
+// Auto updater flags
+autoUpdater.autoDownload = true
+autoUpdater.autoInstallOnAppQuit = true
 
 function createWindow() {
   win = new BrowserWindow({
@@ -119,4 +123,8 @@ app.on('activate', () => {
   }
 })
 
-app.whenReady().then(createWindow)
+app.whenReady().then(() => {
+  createWindow()
+
+  autoUpdater.checkForUpdates()
+})

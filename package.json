@@ -1,12 +1,19 @@
 {
-  "name": "binance-order-assistant",
+  "name": "futures-pocket-trader",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.1",
+  "author": "lorenzoa7",
+  "license": "ISC",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build && electron-builder",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0 --fix",
     "preview": "vite preview"
+  },
+  "repository": "https://github.com/lorenzoa7/futures-pocket-trader",
+  "publish": {
+    "provider": "github",
+    "releaseType": "release"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",
@@ -26,6 +33,7 @@
     "clsx": "^2.1.0",
     "cmdk": "^0.2.1",
     "crypto-js": "^4.2.0",
+    "electron-updater": "^6.1.8",
     "framer-motion": "^11.0.3",
     "localforage": "^1.10.0",
     "lucide-react": "^0.314.0",
