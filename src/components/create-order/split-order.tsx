@@ -9,7 +9,6 @@ import {
   splitOrderSchema,
 } from '@/schemas/split-order-schema'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useQueryClient } from '@tanstack/react-query'
 import { Check, ChevronsUpDown } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -73,15 +72,10 @@ export function SplitOrder() {
   const { data: symbols, isPending: isPendingSymbols } = useSymbolsQuery()
   const { data: lastPrice, isPending: isPendingPrice } =
     useSymbolPriceQuery(symbolWatch)
-  const queryClient = useQueryClient()
   const [data, setData] = useState<SplitOrderSchema>()
   const [openConfirmationDialog, setOpenConfirmationDialog] = useState(false)
 
   async function handleCreateSplitOrder(data: SplitOrderSchema) {
-    await queryClient.invalidateQueries({
-      queryKey: ['symbol-price', symbolWatch],
-    })
-
     const selectedSymbolData = symbols?.find(
       (symbol) => symbol.symbol === data.symbol,
     )
@@ -97,14 +91,19 @@ export function SplitOrder() {
       toast.error('Something went wrong. Check the parameters and try again!')
       return
     }
+
     data.price = roundToDecimals(data.price, precision.price || 0)
 
-    data.prices = Array.from({ length: data.ordersQuantity }).map((_, index) =>
-      roundToDecimals(
-        (1 - (data.dropPercentage / data.ordersQuantity / 100) * index) *
-          data.price,
-        precision.price,
-      ),
+    data.prices = Array.from({ length: data.ordersQuantity }).map(
+      (_, index) => {
+        const price =
+          (1 - (data.dropPercentage / data.ordersQuantity / 100) * index) *
+          data.price
+
+        const correctedPrice =
+          price - (price % Number(selectedSymbolData.filters[0].tickSize))
+        return roundToDecimals(correctedPrice, precision.price)
+      },
     )
 
     data.sizes = data.prices.map((price) =>

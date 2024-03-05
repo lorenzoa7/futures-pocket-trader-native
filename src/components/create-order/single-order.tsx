@@ -42,7 +42,6 @@ import {
   singleOrderSchema,
 } from '@/schemas/single-order-schema'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useQueryClient } from '@tanstack/react-query'
 import { Check, ChevronsUpDown } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -68,7 +67,6 @@ export function SingleOrder() {
   const isUsdtQuantity = watch('isUsdtQuantity')
   const side = watch('side')
   const [currencies, setCurrencies] = useState<string[]>([])
-  const queryClient = useQueryClient()
 
   const [open, setOpen] = useState(false)
   const { apiKey, isTestnetAccount, secretKey } = useAccountStore()
@@ -78,13 +76,6 @@ export function SingleOrder() {
   const { mutate: newOrder, isPending: isPendingNewOrder } = useNewOrderQuery()
 
   async function handleCreateOrder(data: SingleOrderSchema) {
-    await Promise.all([
-      queryClient.invalidateQueries({
-        queryKey: ['symbol-price', symbolWatch],
-      }),
-      queryClient.invalidateQueries({ queryKey: ['positions'] }),
-    ])
-
     const selectedSymbolData = symbols?.find(
       (symbol) => symbol.symbol === data.symbol,
     )
@@ -96,14 +87,22 @@ export function SingleOrder() {
       quote: selectedSymbolData.quotePrecision,
     }
 
+    if (!precision) {
+      toast.error('Something went wrong. Check the parameters and try again!')
+      return
+    }
+
     data.quantity = data.isUsdtQuantity
       ? roundToDecimals(
           convertUsdtToPrice(data.quantity, data.price),
-          precision?.quantity || 0,
+          precision.quantity || 0,
         )
-      : roundToDecimals(data.quantity, precision?.quantity || 0)
+      : roundToDecimals(data.quantity, precision.quantity || 0)
 
-    data.price = roundToDecimals(data.price, precision?.price || 0)
+    const correctedPrice =
+      data.price - (data.price % Number(selectedSymbolData.filters[0].tickSize))
+
+    data.price = roundToDecimals(correctedPrice, precision.price || 0)
 
     if (data.quantity <= 0) {
       toast.error('Quantity is too low. Set a new quantity and try again.')
