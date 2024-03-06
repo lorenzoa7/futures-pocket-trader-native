@@ -1,3 +1,70 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@font-face {
+  font-family: 'fira';
+  src: local('FiraSans-Thin'), url('./assets/fonts/FiraSans-Thin.ttf') format('truetype');
+  font-weight: 100;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'fira';
+  src: local('FiraSans-ExtraLight'), url('./assets/fonts/FiraSans-ExtraLight.ttf') format('truetype');
+  font-weight: 200;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'fira';
+  src: local('FiraSans-Light'), url('./assets/fonts/FiraSans-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'fira';
+  src: local('FiraSans-Regular'), url('./assets/fonts/FiraSans-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'fira';
+  src: local('FiraSans-Medium'), url('./assets/fonts/FiraSans-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'fira';
+  src: local('FiraSans-SemiBold'), url('./assets/fonts/FiraSans-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'fira';
+  src: local('FiraSans-SemiBold'), url('./assets/fonts/FiraSans-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'fira';
+  src: local('FiraSans-ExtraBold'), url('./assets/fonts/FiraSans-ExtraBold.ttf') format('truetype');
+  font-weight: 800;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'fira';
+  src: local('FiraSans-Black'), url('./assets/fonts/FiraSans-Black.ttf') format('truetype');
+  font-weight: 900;
+  font-style: normal;
+}
+
+html {
+  font-family: 'fira';
+}
