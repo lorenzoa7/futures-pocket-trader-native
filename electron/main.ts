@@ -75,7 +75,7 @@ autoUpdater.autoInstallOnAppQuit = true
 
 function createWindow() {
   win = new BrowserWindow({
-    icon: path.join(process.env.VITE_PUBLIC, 'bitcoin-icon.ico'),
+    icon: path.join(process.env.VITE_PUBLIC, 'icon.ico'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
     },
