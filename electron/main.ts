@@ -69,9 +69,6 @@ ipcMain.handle(
     }
   },
 )
-// Auto updater flags
-autoUpdater.autoDownload = true
-autoUpdater.autoInstallOnAppQuit = true
 
 function createWindow() {
   win = new BrowserWindow({
@@ -123,8 +120,11 @@ app.on('activate', () => {
   }
 })
 
-app.whenReady().then(() => {
-  createWindow()
+app.on('ready', async () => {
+  await autoUpdater.checkForUpdatesAndNotify({
+    title: 'Futures Pocket Trader',
+    body: 'There is a new version of Futures Pocket Trader. The app will be automatically installed when you quit.',
+  })
 
-  autoUpdater.checkForUpdates()
+  createWindow()
 })
