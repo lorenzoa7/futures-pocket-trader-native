@@ -347,7 +347,7 @@ export function SplitOrder() {
                 <FormLabel>Drop percentage - {field.value}%</FormLabel>
                 <FormControl>
                   <Slider
-                    min={1}
+                    min={0}
                     max={99}
                     step={1}
                     defaultValue={[field.value]}

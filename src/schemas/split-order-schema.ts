@@ -8,7 +8,7 @@ export const splitOrderSchema = z
     price: z.coerce.number().gt(0),
     size: z.coerce.number().gt(0),
     ordersQuantity: z.coerce.number().int().gte(2).lte(20),
-    dropPercentage: z.coerce.number().int().gte(1).lt(100),
+    dropPercentage: z.coerce.number().int().gte(0).lt(100),
     side: z.enum(['BUY', 'SELL']),
     isUsdtQuantity: z.boolean(),
     prices: z.array(z.number()),
