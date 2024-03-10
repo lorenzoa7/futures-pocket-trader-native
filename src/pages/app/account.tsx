@@ -52,7 +52,7 @@ export function Account() {
               <FormItem>
                 <FormLabel>Your API key</FormLabel>
                 <FormControl>
-                  <Input {...field} />
+                  <Input type="password" {...field} />
                 </FormControl>
 
                 <FormMessage />
@@ -67,7 +67,7 @@ export function Account() {
               <FormItem>
                 <FormLabel>Your secret key</FormLabel>
                 <FormControl>
-                  <Input {...field} />
+                  <Input type="password" {...field} />
                 </FormControl>
 
                 <FormMessage />
