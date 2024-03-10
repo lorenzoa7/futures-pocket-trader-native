@@ -43,7 +43,7 @@ export function LeveragePopover({ symbol }: Props) {
     },
   })
 
-  const setValue = form.setValue
+  const { setValue } = form
 
   async function handleSetLeverage(data: LeverageSchema) {
     await setLeverage({

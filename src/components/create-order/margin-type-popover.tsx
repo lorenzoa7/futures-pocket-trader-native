@@ -39,7 +39,7 @@ export function MarginTypePopover({ symbol }: Props) {
     },
   })
 
-  const setValue = form.setValue
+  const { setValue } = form
 
   async function handleSetMarginType(data: MarginTypeSchema) {
     await setMarginType({

@@ -1,4 +1,10 @@
-import { app, BrowserWindow, ipcMain, IpcMainInvokeEvent } from 'electron'
+import {
+  BrowserWindow,
+  IpcMainInvokeEvent,
+  app,
+  globalShortcut,
+  ipcMain,
+} from 'electron'
 import { autoUpdater } from 'electron-updater'
 import path from 'node:path'
 
@@ -94,6 +100,11 @@ function createWindow() {
     win?.webContents.send('main-process-message', new Date().toLocaleString())
   })
 
+  // Prevent opening new window
+  win.webContents.setWindowOpenHandler(() => {
+    return { action: 'deny' }
+  })
+
   if (VITE_DEV_SERVER_URL) {
     win.loadURL(VITE_DEV_SERVER_URL)
   } else {
@@ -120,9 +131,20 @@ app.on('activate', () => {
   }
 })
 
+app.on('browser-window-focus', function () {
+  globalShortcut.registerAll(
+    ['CommandOrControl+R', 'CommandOrControl+Shift+R', 'F5'],
+    () => {},
+  )
+})
+
+app.on('browser-window-blur', function () {
+  globalShortcut.unregisterAll()
+})
+
 app.on('ready', async () => {
   await autoUpdater.checkForUpdatesAndNotify({
-    title: 'Futures Pocket Trader',
+    title: 'Futures Pocket Trader - Update Available',
     body: 'There is a new version of Futures Pocket Trader. The app will be automatically installed when you quit.',
   })
 

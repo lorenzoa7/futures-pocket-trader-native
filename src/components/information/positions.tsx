@@ -395,8 +395,14 @@ export function Positions() {
               {filteredPositions
                 .sort(
                   (positionA, positionB) =>
-                    Number(positionB.positionAmt) -
-                    Number(positionA.positionAmt),
+                    convertPriceToUsdt(
+                      Number(positionA.positionAmt),
+                      prices[positionA.symbol] ?? 0,
+                    ) -
+                    convertPriceToUsdt(
+                      Number(positionB.positionAmt),
+                      prices[positionB.symbol] ?? 0,
+                    ),
                 )
                 .map((position, index) => {
                   const positionSide = getPositionSide(

@@ -61,9 +61,12 @@ export function SplitOrder() {
     },
   })
 
-  const watch = form.watch
-  const setValue = form.setValue
-  const isSubmitting = form.formState.isSubmitting
+  const {
+    watch,
+    setValue,
+    formState: { isSubmitting },
+  } = form
+
   const symbolWatch = watch('symbol')
   const isUsdtQuantity = watch('isUsdtQuantity')
   const side = watch('side')
