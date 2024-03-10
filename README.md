@@ -8,7 +8,7 @@
   
 </div>
 
-![Futures Pocket Trader Demo](https://github.com/lorenzoa7/futures-pocket-trader/blob/master/public/github/demo_futures_pocket_trader.gif)
+![Futures Pocket Trader Demo](public/github/demo_futures_pocket_trader.gif)
 
 
 ## 📑 About
@@ -36,7 +36,7 @@ Feel free to open new issues and suggest new features. This project is open-sour
 
 Firstly, in the "Account" page, you must enter your API key and your Binance secret key and hit the save button. If you want, you can activate the option "This is a testnet account" if you are using a testnet network account (for testing only).
 
-This application needs the keys to work, as the connection to Binance can only be made with them.
+This application needs the keys to work, as the connection to Binance can only be made with them. Your keys are saved locally on your machine, so you can feel safe entering them into the app.
 
 <img src="public/github/account_page.png" alt="Account page" width="80%" height="auto" />
 
