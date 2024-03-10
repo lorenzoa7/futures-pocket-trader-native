@@ -396,12 +396,12 @@ export function Positions() {
                 .sort(
                   (positionA, positionB) =>
                     convertPriceToUsdt(
-                      Number(positionA.positionAmt),
-                      prices[positionA.symbol] ?? 0,
-                    ) -
-                    convertPriceToUsdt(
                       Number(positionB.positionAmt),
                       prices[positionB.symbol] ?? 0,
+                    ) -
+                    convertPriceToUsdt(
+                      Number(positionA.positionAmt),
+                      prices[positionA.symbol] ?? 0,
                     ),
                 )
                 .map((position, index) => {
