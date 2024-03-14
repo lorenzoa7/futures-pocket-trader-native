@@ -100,7 +100,8 @@ export function SplitOrder() {
     data.prices = Array.from({ length: data.ordersQuantity }).map(
       (_, index) => {
         const price =
-          (1 - (data.dropPercentage / data.ordersQuantity / 100) * index) *
+          (1 -
+            (data.dropPercentage / data.ordersQuantity / 100) * (index + 1)) *
           data.price
 
         const correctedPrice =

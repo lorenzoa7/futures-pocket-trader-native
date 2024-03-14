@@ -52,7 +52,7 @@ In the example below, we will create a BTCUSDT order, with leverage at 25x and w
 
 In the "Create order" page, you can go to the "Split" section, to create multiple orders. Same as the previous section, you define the symbol and the price you will buy. However, this time, you will define the total order size, which will be divided by the number of orders you also define. Furthermore, you can define a price drop percentage, that is, the orders created will vary from the defined price to their value with the decreased percentage.
 
-In the example below, we set the price to be 50,000 USDT and the total size to be 3,000 USDT. So, we define that 10 orders will be created, with a drop percentage of 30%. In this case, 10 orders will be created, of 300 USDT each (3,000 divided by 10), with the first order created at price 50,000, the second 3% below that (48,500) and so on until reaching 30% below the last order (37,500).
+In the example below, we set the price to be 50,000 USDT and the total size to be 3,000 USDT. So, we define that 10 orders will be created, with a drop percentage of 30%. In this case, 10 orders will be created, of 300 USDT each (3,000 divided by 10), with the first order created at price 48,500 (3% below the defined 50,000), the second 6% below (47000) and so on until reaching 30% below the price (37,500).
 
 <img src="public/github/create_split_order_section.png" alt="Create split order section" width="80%" height="auto" />
 
