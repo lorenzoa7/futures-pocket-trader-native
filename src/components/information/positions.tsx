@@ -399,7 +399,7 @@ export function Positions() {
               <TableRow>
                 <TableHead className="w-56">Symbol</TableHead>
                 <TableHead className="w-52">Side</TableHead>
-                <TableHead className="w-56">Entry Price</TableHead>
+                <TableHead className="w-72">Entry Price</TableHead>
                 <TableHead className="w-56 text-right">Size</TableHead>
                 <TableHead className="w-56 text-center">
                   <Button
