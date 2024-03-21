@@ -13,7 +13,7 @@ import {
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useQueryClient } from '@tanstack/react-query'
 import { Check, ChevronsUpDown, RefreshCcw, Trash2 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Button } from '../ui/button'
 import {
@@ -61,7 +61,7 @@ export function Orders() {
   const form = useForm<InformationFilterSchema>({
     resolver: zodResolver(informationFilterSchema),
   })
-  const { watch, handleSubmit, setValue } = form
+  const { handleSubmit, setValue } = form
 
   const handleFilter = (data: InformationFilterSchema) => {
     setFilteredOrders((state) => {
@@ -76,6 +76,7 @@ export function Orders() {
       )
     })
   }
+  const formRef = useRef<HTMLFormElement>(null)
 
   const handleRefreshOrders = () => {
     setValue('symbol', undefined)
@@ -87,18 +88,13 @@ export function Orders() {
   const [openSideFilter, setOpenSideFilter] = useState(false)
 
   useEffect(() => {
-    const subscription = watch(() => handleSubmit(handleFilter)())
-    return () => subscription.unsubscribe()
-  }, [handleSubmit, watch])
-
-  useEffect(() => {
     setFilteredOrders(orders)
   }, [orders])
 
   return (
     <>
       <Form {...form}>
-        <form onSubmit={handleSubmit(handleFilter)}>
+        <form onSubmit={handleSubmit(handleFilter)} ref={formRef}>
           <Label>Filters</Label>
           <div className="my-2 flex gap-2">
             <FormField
@@ -160,6 +156,10 @@ export function Orders() {
                                         form.setValue('symbol', symbol)
                                       } else {
                                         form.setValue('symbol', undefined)
+                                      }
+
+                                      if (formRef && formRef.current) {
+                                        formRef.current.requestSubmit()
                                       }
 
                                       setOpenSymbolFilter(false)
@@ -231,6 +231,10 @@ export function Orders() {
                                   form.setValue('side', undefined)
                                 }
 
+                                if (formRef && formRef.current) {
+                                  formRef.current.requestSubmit()
+                                }
+
                                 setOpenSideFilter(false)
                               }}
                             >
@@ -254,6 +258,15 @@ export function Orders() {
                 </FormItem>
               )}
             />
+            {/* <Button
+              type="button"
+              variant="secondary"
+              size="icon"
+              className="rounded-full"
+              onClick={handleRefreshOrders}
+            >
+              <Filter className="size-5" />
+            </Button> */}
             <div className="flex flex-1 justify-end pr-3">
               <Button
                 type="button"
