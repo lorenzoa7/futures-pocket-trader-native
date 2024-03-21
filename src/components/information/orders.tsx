@@ -12,7 +12,7 @@ import {
 } from '@/schemas/information-filter-schema'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useQueryClient } from '@tanstack/react-query'
-import { Check, ChevronsUpDown, RefreshCcw, Trash2 } from 'lucide-react'
+import { Check, ChevronsUpDown, RefreshCcw, Trash2, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Button } from '../ui/button'
@@ -96,12 +96,12 @@ export function Orders() {
       <Form {...form}>
         <form onSubmit={handleSubmit(handleFilter)} ref={formRef}>
           <Label>Filters</Label>
-          <div className="my-2 flex gap-2">
+          <div className="my-2 flex gap-2.5">
             <FormField
               control={form.control}
               name="symbol"
               render={({ field }) => (
-                <FormItem className="flex flex-col">
+                <FormItem className="relative flex flex-col">
                   <Popover
                     open={openSymbolFilter}
                     onOpenChange={setOpenSymbolFilter}
@@ -146,17 +146,7 @@ export function Orders() {
                                     value={symbol}
                                     key={symbol}
                                     onSelect={() => {
-                                      const formSymbol =
-                                        form.getValues('symbol')
-
-                                      if (
-                                        !formSymbol ||
-                                        formSymbol !== symbol
-                                      ) {
-                                        form.setValue('symbol', symbol)
-                                      } else {
-                                        form.setValue('symbol', undefined)
-                                      }
+                                      form.setValue('symbol', symbol)
 
                                       if (formRef && formRef.current) {
                                         formRef.current.requestSubmit()
@@ -184,6 +174,23 @@ export function Orders() {
                     </PopoverContent>
                   </Popover>
 
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    data-has-filter={!!form.getValues('symbol')}
+                    className="invisible absolute -right-2 -top-4 size-6 rounded-full data-[has-filter=true]:visible"
+                    onClick={() => {
+                      form.setValue('symbol', undefined)
+
+                      if (formRef && formRef.current) {
+                        formRef.current.requestSubmit()
+                      }
+                    }}
+                  >
+                    <X className="size-4" />
+                  </Button>
+
                   <FormMessage />
                 </FormItem>
               )}
@@ -193,7 +200,7 @@ export function Orders() {
               control={form.control}
               name="side"
               render={({ field }) => (
-                <FormItem className="flex flex-col">
+                <FormItem className="relative flex flex-col">
                   <Popover
                     open={openSideFilter}
                     onOpenChange={setOpenSideFilter}
@@ -223,13 +230,7 @@ export function Orders() {
                               value={side}
                               key={side}
                               onSelect={() => {
-                                const formSide = form.getValues('side')
-
-                                if (!formSide || formSide !== side) {
-                                  form.setValue('side', side)
-                                } else {
-                                  form.setValue('side', undefined)
-                                }
+                                form.setValue('side', side)
 
                                 if (formRef && formRef.current) {
                                   formRef.current.requestSubmit()
@@ -253,6 +254,23 @@ export function Orders() {
                       </Command>
                     </PopoverContent>
                   </Popover>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    data-has-filter={!!form.getValues('side')}
+                    className="invisible absolute -right-2 -top-4 size-6 rounded-full data-[has-filter=true]:visible"
+                    onClick={() => {
+                      form.setValue('side', undefined)
+
+                      if (formRef && formRef.current) {
+                        formRef.current.requestSubmit()
+                      }
+                    }}
+                  >
+                    <X className="size-4" />
+                  </Button>
 
                   <FormMessage />
                 </FormItem>

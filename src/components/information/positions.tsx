@@ -16,8 +16,8 @@ import {
 import { SingleOrderSchema } from '@/schemas/single-order-schema'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useQueryClient } from '@tanstack/react-query'
-import { Check, ChevronsUpDown, RefreshCcw } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { Check, ChevronsUpDown, RefreshCcw, X } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Button } from '../ui/button'
 import {
@@ -73,7 +73,7 @@ export function Positions() {
   const form = useForm<InformationFilterSchema>({
     resolver: zodResolver(informationFilterSchema),
   })
-  const { watch, handleSubmit, setValue } = form
+  const { handleSubmit, setValue } = form
 
   const handleFilter = (data: InformationFilterSchema) => {
     setFilteredPositions((state) => {
@@ -174,13 +174,10 @@ export function Positions() {
     queryClient.invalidateQueries({ queryKey: ['positions'] })
   }
 
+  const formRef = useRef<HTMLFormElement>(null)
+
   const [openSymbolFilter, setOpenSymbolFilter] = useState(false)
   const [openSideFilter, setOpenSideFilter] = useState(false)
-
-  useEffect(() => {
-    const subscription = watch(() => handleSubmit(handleFilter)())
-    return () => subscription.unsubscribe()
-  }, [handleSubmit, watch])
 
   useEffect(() => {
     setFilteredPositions(positions)
@@ -189,14 +186,14 @@ export function Positions() {
   return (
     <>
       <Form {...form}>
-        <form onSubmit={handleSubmit(handleFilter)}>
+        <form onSubmit={handleSubmit(handleFilter)} ref={formRef}>
           <Label>Filters</Label>
-          <div className="my-2 flex gap-2">
+          <div className="my-2 flex gap-2.5">
             <FormField
               control={form.control}
               name="symbol"
               render={({ field }) => (
-                <FormItem className="flex flex-col">
+                <FormItem className="relative flex flex-col">
                   <Popover
                     open={openSymbolFilter}
                     onOpenChange={setOpenSymbolFilter}
@@ -241,16 +238,10 @@ export function Positions() {
                                     value={symbol}
                                     key={symbol}
                                     onSelect={() => {
-                                      const formSymbol =
-                                        form.getValues('symbol')
+                                      form.setValue('symbol', symbol)
 
-                                      if (
-                                        !formSymbol ||
-                                        formSymbol !== symbol
-                                      ) {
-                                        form.setValue('symbol', symbol)
-                                      } else {
-                                        form.setValue('symbol', undefined)
+                                      if (formRef && formRef.current) {
+                                        formRef.current.requestSubmit()
                                       }
 
                                       setOpenSymbolFilter(false)
@@ -275,6 +266,23 @@ export function Positions() {
                     </PopoverContent>
                   </Popover>
 
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    data-has-filter={!!form.getValues('symbol')}
+                    className="invisible absolute -right-2 -top-4 size-6 rounded-full data-[has-filter=true]:visible"
+                    onClick={() => {
+                      form.setValue('symbol', undefined)
+
+                      if (formRef && formRef.current) {
+                        formRef.current.requestSubmit()
+                      }
+                    }}
+                  >
+                    <X className="size-4" />
+                  </Button>
+
                   <FormMessage />
                 </FormItem>
               )}
@@ -284,7 +292,7 @@ export function Positions() {
               control={form.control}
               name="side"
               render={({ field }) => (
-                <FormItem className="flex flex-col">
+                <FormItem className="relative flex flex-col">
                   <Popover
                     open={openSideFilter}
                     onOpenChange={setOpenSideFilter}
@@ -314,12 +322,10 @@ export function Positions() {
                               value={side}
                               key={side}
                               onSelect={() => {
-                                const formSide = form.getValues('side')
+                                form.setValue('side', side)
 
-                                if (!formSide || formSide !== side) {
-                                  form.setValue('side', side)
-                                } else {
-                                  form.setValue('side', undefined)
+                                if (formRef && formRef.current) {
+                                  formRef.current.requestSubmit()
                                 }
 
                                 setOpenSideFilter(false)
@@ -340,6 +346,23 @@ export function Positions() {
                       </Command>
                     </PopoverContent>
                   </Popover>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    data-has-filter={!!form.getValues('side')}
+                    className="invisible absolute -right-2 -top-4 size-6 rounded-full data-[has-filter=true]:visible"
+                    onClick={() => {
+                      form.setValue('side', undefined)
+
+                      if (formRef && formRef.current) {
+                        formRef.current.requestSubmit()
+                      }
+                    }}
+                  >
+                    <X className="size-4" />
+                  </Button>
 
                   <FormMessage />
                 </FormItem>
