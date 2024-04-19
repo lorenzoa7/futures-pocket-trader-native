@@ -9,6 +9,7 @@ import { useSymbolsPriceQueries } from '@/hooks/query/use-symbols-price-queries'
 import { useSymbolsQuery } from '@/hooks/query/use-symbols-query'
 import { useAccountStore } from '@/hooks/store/use-account-store'
 import { cn } from '@/lib/utils'
+import { CloseAllLimitSchema } from '@/schemas/close-all-limit-schema'
 import {
   InformationFilterSchema,
   informationFilterSchema,
@@ -17,8 +18,9 @@ import { SingleOrderSchema } from '@/schemas/single-order-schema'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useQueryClient } from '@tanstack/react-query'
 import { Check, ChevronsUpDown, RefreshCcw, X } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
 import { Button } from '../ui/button'
 import {
   Command,
@@ -42,9 +44,15 @@ import {
   TableHeader,
   TableRow,
 } from '../ui/table'
+import {
+  CloseAllLimitPopover,
+  SymbolInformation,
+} from './close-all-limit-popover'
 import { CloseLimitPopover } from './close-limit-popover'
 
 export function Positions() {
+  const { mutateAsync: newOrder, isPending: isPendingNewOrder } =
+    useNewOrderQuery()
   const {
     data: positions,
     isPending: isPendingPositions,
@@ -52,9 +60,18 @@ export function Positions() {
   } = usePositionsQuery({
     onlyOpenPositions: true,
   })
-  const { mutateAsync: newOrder, isPending: isPendingNewOrder } =
-    useNewOrderQuery()
-  const [filteredPositions, setFilteredPositions] = useState(positions)
+  // const [filteredPositions, setFilteredPositions] = useState(positions)
+  const [filter, setFilter] = useState<InformationFilterSchema>({
+    side: undefined,
+    symbol: undefined,
+  })
+  const filteredPositions = positions?.filter(
+    (position) =>
+      (!filter.symbol || filter.symbol === position.symbol) &&
+      (!filter.side ||
+        filter.side === getPositionSide(Number(position.notional))),
+  )
+
   const queryClient = useQueryClient()
   const { apiKey, isTestnetAccount, secretKey } = useAccountStore()
   const { data: symbols } = useSymbolsQuery()
@@ -76,18 +93,7 @@ export function Positions() {
   const { handleSubmit, setValue } = form
 
   const handleFilter = (data: InformationFilterSchema) => {
-    setFilteredPositions((state) => {
-      if (!state || !positions) {
-        return state
-      }
-
-      return positions.filter(
-        (position) =>
-          (!data.symbol || data.symbol === position.symbol) &&
-          (!data.side ||
-            data.side === getPositionSide(Number(position.notional))),
-      )
-    })
+    setFilter(data)
   }
 
   const handleCloseAll = async () => {
@@ -168,6 +174,48 @@ export function Positions() {
     })
   }
 
+  const handleCloseAllLimit = async ({ orders }: CloseAllLimitSchema) => {
+    console.log(orders)
+    const promises = orders.map(async (data) => {
+      const symbolData = symbols?.find((item) => item.symbol === data.symbol)
+      const precision = symbolData && {
+        quantity: symbolData.quantityPrecision,
+        price: symbolData.pricePrecision,
+        baseAsset: symbolData.baseAssetPrecision,
+        quote: symbolData.quotePrecision,
+      }
+
+      data.quantity = roundToDecimals(data.quantity, precision?.quantity || 0)
+      data.price = roundToDecimals(data.price, precision?.price || 0)
+
+      return newOrder({
+        apiKey,
+        isTestnetAccount,
+        secretKey,
+        data,
+        queryClient,
+        type: 'LIMIT',
+        noSuccessMessage: true,
+      })
+    })
+
+    try {
+      await Promise.all(promises)
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ['open-orders'],
+        }),
+        queryClient.invalidateQueries({ queryKey: ['positions'] }),
+      ])
+
+      toast.success('Close all limit orders created successfully!')
+    } catch (error) {
+      toast.error("Couldn't create a new order.", {
+        description: error as string,
+      })
+    }
+  }
+
   const handleRefreshPositions = () => {
     setValue('symbol', undefined)
     setValue('side', undefined)
@@ -175,13 +223,8 @@ export function Positions() {
   }
 
   const formRef = useRef<HTMLFormElement>(null)
-
   const [openSymbolFilter, setOpenSymbolFilter] = useState(false)
   const [openSideFilter, setOpenSideFilter] = useState(false)
-
-  useEffect(() => {
-    setFilteredPositions(positions)
-  }, [positions])
 
   return (
     <>
@@ -401,16 +444,51 @@ export function Positions() {
                 <TableHead className="w-52">Side</TableHead>
                 <TableHead className="w-72">Entry Price</TableHead>
                 <TableHead className="w-56 text-right">Size</TableHead>
-                <TableHead className="w-56 text-center">
+                <TableHead className="w-96 space-x-2 text-center">
+                  <span>Close all:</span>
                   <Button
                     type="button"
-                    size="sm"
-                    variant="ghost"
-                    className="px-0 text-yellow-500 dark:hover:text-yellow-400"
+                    variant="link"
+                    disabled={isPendingNewOrder}
                     onClick={handleCloseAll}
+                    className="h-4 px-0 dark:text-yellow-500 dark:hover:text-yellow-400"
                   >
-                    {isPendingNewOrder ? <Spinner /> : <span>Close all</span>}
+                    {isPendingNewOrder ? <Spinner /> : <span>Market</span>}
                   </Button>
+
+                  <Separator
+                    orientation="vertical"
+                    className="inline-block h-4 dark:bg-slate-700"
+                  />
+
+                  {isPendingSymbolsPrices ? (
+                    <Spinner className="mb-1.5 inline-block size-3" />
+                  ) : (
+                    <CloseAllLimitPopover
+                      symbolsInformation={filteredPositions.map((position) => {
+                        const symbolData = symbols?.find(
+                          (item) => item.symbol === position.symbol,
+                        )
+
+                        const symbolInformation: SymbolInformation = {
+                          symbol: position.symbol,
+                          quantity: roundToDecimals(
+                            Math.abs(Number(position.positionAmt)),
+                            symbolData ? symbolData.quantityPrecision : 2,
+                          ),
+                          quantityPrecision: symbolData
+                            ? symbolData.quantityPrecision
+                            : 2,
+                          side: getPositionSide(Number(position.notional)),
+                          price: prices[position.symbol] ?? 0.5,
+                        }
+
+                        return symbolInformation
+                      })}
+                      handleSubmit={handleCloseAllLimit}
+                      isPending={isPendingNewOrder}
+                    />
+                  )}
                 </TableHead>
               </TableRow>
             </TableHeader>

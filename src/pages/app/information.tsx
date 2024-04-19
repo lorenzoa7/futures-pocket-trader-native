@@ -7,7 +7,7 @@ export function Information() {
     <div className="m-auto flex flex-col justify-center gap-6">
       <Tabs
         defaultValue="positions"
-        className="flex w-[600px] flex-col items-center justify-center"
+        className="flex w-[720px] flex-col items-center justify-center"
       >
         <TabsList>
           <TabsTrigger value="positions">Open positions</TabsTrigger>
