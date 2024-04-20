@@ -28,14 +28,17 @@ type Props = {
   symbolsInformation: SymbolInformation[]
   isPending: boolean
   handleSubmit: (data: CloseAllLimitSchema) => Promise<void>
+  open: boolean
+  setOpen: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 export function CloseAllLimitPopover({
   symbolsInformation,
   isPending,
   handleSubmit,
+  open,
+  setOpen,
 }: Props) {
-  const [open, setOpen] = useState(false)
   const [selectedPercentage, setSelectedPercentage] =
     useState<CloseLimitQuantityPercentages>(100)
 

@@ -60,11 +60,14 @@ export function Positions() {
   } = usePositionsQuery({
     onlyOpenPositions: true,
   })
-  // const [filteredPositions, setFilteredPositions] = useState(positions)
   const [filter, setFilter] = useState<InformationFilterSchema>({
     side: undefined,
     symbol: undefined,
   })
+
+  const [openCloseAllLimitPopover, setOpenCloseAllLimitPopover] =
+    useState(false)
+
   const filteredPositions = positions?.filter(
     (position) =>
       (!filter.symbol || filter.symbol === position.symbol) &&
@@ -175,7 +178,6 @@ export function Positions() {
   }
 
   const handleCloseAllLimit = async ({ orders }: CloseAllLimitSchema) => {
-    console.log(orders)
     const promises = orders.map(async (data) => {
       const symbolData = symbols?.find((item) => item.symbol === data.symbol)
       const precision = symbolData && {
@@ -185,8 +187,16 @@ export function Positions() {
         quote: symbolData.quotePrecision,
       }
 
-      data.quantity = roundToDecimals(data.quantity, precision?.quantity || 0)
-      data.price = roundToDecimals(data.price, precision?.price || 0)
+      if (!precision) {
+        toast.error('Something went wrong. Check the parameters and try again!')
+        return
+      }
+
+      data.quantity = roundToDecimals(data.quantity, precision.quantity)
+
+      const correctedPrice =
+        data.price - (data.price % Number(symbolData.filters[0].tickSize))
+      data.price = roundToDecimals(correctedPrice, precision.price)
 
       return newOrder({
         apiKey,
@@ -201,15 +211,12 @@ export function Positions() {
 
     try {
       await Promise.all(promises)
-      await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: ['open-orders'],
-        }),
-        queryClient.invalidateQueries({ queryKey: ['positions'] }),
-      ])
+      await queryClient.invalidateQueries({ queryKey: ['positions'] })
 
+      setOpenCloseAllLimitPopover(false)
       toast.success('Close all limit orders created successfully!')
     } catch (error) {
+      setOpenCloseAllLimitPopover(false)
       toast.error("Couldn't create a new order.", {
         description: error as string,
       })
@@ -486,7 +493,9 @@ export function Positions() {
                         return symbolInformation
                       })}
                       handleSubmit={handleCloseAllLimit}
-                      isPending={isPendingNewOrder}
+                      isPending={isPendingNewOrder || isPendingPositions}
+                      open={openCloseAllLimitPopover}
+                      setOpen={setOpenCloseAllLimitPopover}
                     />
                   )}
                 </TableHead>
